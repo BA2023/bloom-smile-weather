@@ -97,12 +97,12 @@ export class ParticleEngine {
     if (this.rockets.length || this.events.length > 2) return false;
     const w = this.width, h = this.height;
     const cx = clamp(head?.x ?? w * .52, w * .27, w * .73);
-    const cy = clamp(head ? head.y - head.ry - h * .12 : h * .28, h * .22, h * .42);
-    const spread = Math.min(w * .22, 145);
-    this.launch(cx, cy, 1.12 * strength, 0);
+    const cy = clamp(head ? head.y - head.ry - h * .075 : h * .32, h * .28, h * .44);
+    const spread = Math.min(w * .16, 110);
+    this.launch(cx, cy, 1.48 * strength, 0);
     if (!this.lightMotion) {
-      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 60, w - 60), y: cy + h * .10, scale: .74 * strength, variant: 1 });
-      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 60, w - 60), y: cy + h * .06, scale: .84 * strength, variant: 2 });
+      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 60, w - 60), y: cy + h * .10, scale: 1.24 * strength, variant: 1 });
+      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 60, w - 60), y: cy + h * .06, scale: 1.32 * strength, variant: 2 });
     }
     return true;
   }
