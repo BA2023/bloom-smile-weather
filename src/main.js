@@ -1,7 +1,8 @@
-import { ParticleEngine, PALETTES } from './particles.js?v=streak-6';
+import { ParticleEngine, PALETTES } from './particles.js?v=live-7';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
+import { createLiveRoom } from './live-room.js?v=live-7';
 
 const $ = id => document.getElementById(id);
 const stage = $('stage'), canvas = $('effects'), video = $('camera');
@@ -9,6 +10,7 @@ const engine = new ParticleEngine(canvas, $('foreground-effects')), expressions 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 $('motion-toggle').checked = reduced; engine.lightMotion = reduced;
 let mode = 'preview', currentHead = null, targetHead = null, lastSignal = 0, pending = false, startAttempt = 0;
+let giftRainUntil = 0, pendingGiftBurst = false;
 let previewRain = false, lastFrame = performance.now(), nextAuto = lastFrame + 600;
 let fpsTime = 0, fpsFrames = 0, fps = 0, lowFrames = 0, lastUi = 0;
 let expressionResult = { label: 'no-face', smile: 0, jaw: 0, rain: 0 };
@@ -26,15 +28,14 @@ function banner(text, error = false) {
 }
 function previewState(errorText = '') {
   mode = 'preview'; pending = false; currentHead = targetHead = null;
-  engine.preview = true; expressions.reset();
+  engine.preview = true; expressions.reset(); giftRainUntil = 0; previewRain = false; pendingGiftBurst = false;
   $('stage').classList.remove('camera-active'); $('mode-badge').classList.remove('live');
   video.setAttribute('aria-hidden', 'true');
-  $('mode-label').textContent = '艺术预演'; $('start-camera').hidden = false; $('start-camera').disabled = false;
-  $('start-camera').innerHTML = '开启摄像头<span aria-hidden="true">↗</span>';
+  $('mode-label').textContent = '特效预演'; $('start-camera').hidden = false; $('start-camera').disabled = false;
+  $('start-camera').innerHTML = '<svg aria-hidden="true"><use href="#i-camera"/></svg>开启镜头';
   $('stop-camera').hidden = true; $('preview-actions').hidden = false;
-  $('camera-disclosure').innerHTML = '仅使用摄像头 · 无需麦克风 · 画面不上传<span>当前为艺术预演，尚未开启摄像头</span>';
-  $('control-description').textContent = '准备好，点亮你的第一场星焰。';
-  setExpression('✧', '先看一场星焰', '拖动轮廓接星光，或开启镜头');
+  $('camera-disclosure').innerHTML = '模拟直播间 · 互动仅在本机<span>开启镜头后体验表情特效，画面不上传</span>';
+  setExpression('✧', '让笑意点亮这一场', '点礼物预演，或开启镜头微笑');
   nextAuto = performance.now() + 5500; banner(errorText, !!errorText);
 }
 function setExpression(symbol, name, detail) {
@@ -44,12 +45,11 @@ function onState(state) {
   if (state === 'permission') banner('请允许使用摄像头。你也可以结束连接，继续欣赏预演。');
   if (state === 'loading') banner('正在准备表情识别，首次加载需要一点时间…');
   if (state === 'ready') {
-    mode = 'camera'; pending = false; engine.preview = false; engine.rainStrength = 0; engine.events.length = 0;
+    mode = 'camera'; pending = false; previewRain = false; giftRainUntil = 0; engine.preview = false; engine.rainStrength = 0; engine.events.length = 0;
     $('stage').classList.add('camera-active'); $('mode-badge').classList.add('live'); $('mode-label').textContent = '实时互动';
     video.setAttribute('aria-hidden', 'false');
-    $('start-camera').hidden = true; $('preview-actions').hidden = true; $('stop-camera').textContent = '结束体验';
-    $('camera-disclosure').innerHTML = '摄像头已开启 · 视频帧仅在本机处理<span>微笑下雨，大笑绽放 · 支持头部碰撞</span>';
-    $('control-description').textContent = '看向镜头，先给自己一个微笑。';
+    $('start-camera').hidden = true; $('preview-actions').hidden = false; $('stop-camera').textContent = '关闭镜头';
+    $('camera-disclosure').innerHTML = '模拟直播间 · 镜头仅在本机<span>微笑下雨，大笑绽放 · 画面不上传</span>';
     setExpression('◌', '正在寻找你的笑意', '让脸部完整出现在画面中'); banner(''); lastSignal = performance.now();
   }
   if (state === 'ended' || state === 'tracking-error') previewState(state === 'ended' ? '摄像头连接已中断。可以重新开启体验。' : '表情识别暂时中断。请重新开启摄像头，或继续预演。');
@@ -62,7 +62,7 @@ function onSignal(signal) {
     targetHead = headEllipse(signal.points, video.videoWidth, video.videoHeight, engine.width, engine.height);
   } else { targetHead = null; currentHead = null; }
   engine.rainStrength = expressionResult.rain;
-  if (expressionResult.burst) engine.celebrate(targetHead, 1);
+  if (expressionResult.burst && engine.celebrate(targetHead, 1)) liveRoom.showGift('流光烟花', '你的笑容');
   const labels = {
     'no-face': ['◌', '暂时没有看见你', '靠近一点，让脸部完整入镜'],
     neutral: ['◡', '这一刻，等你微笑', '轻轻微笑，让细雨落下'],
@@ -72,6 +72,11 @@ function onSignal(signal) {
   setExpression(...labels[expressionResult.label]);
 }
 const camera = new CameraTracker(video, onSignal, onState);
+const liveRoom = createLiveRoom({
+  onLeave: () => { startAttempt++; camera.stop(); previewState(); },
+  onEnter: () => { lastFrame = performance.now(); nextAuto = lastFrame + 600; },
+  reduceMotion: () => engine.lightMotion
+});
 
 $('start-camera').addEventListener('click', async () => {
   if (pending) return;
@@ -89,12 +94,17 @@ $('start-camera').addEventListener('click', async () => {
 });
 $('stop-camera').addEventListener('click', () => { startAttempt++; camera.stop(); previewState(); });
 $('preview-burst').addEventListener('click', () => {
-  engine.celebrate(currentHead); nextAuto = performance.now() + 6500;
-  setExpression('✷', `${PALETTES[engine.paletteKey].name}星焰，正在绽放`, '艺术预演 · 摄像头尚未开启');
+  if (!engine.celebrate(currentHead)) pendingGiftBurst = true;
+  liveRoom.showGift('流光烟花', '你');
+  nextAuto = performance.now() + 6500;
+  setExpression('✷', `${PALETTES[engine.paletteKey].name}星焰，正在绽放`, mode === 'camera' ? '晃动头部，接住下落的星光' : '开启镜头，用笑容点亮烟花');
 });
 $('preview-rain').addEventListener('click', () => {
-  previewRain = !previewRain; $('preview-rain').setAttribute('aria-pressed', String(previewRain));
-  setExpression(previewRain ? '╲' : '✧', previewRain ? '一场光的细雨' : '先看一场星焰', '艺术预演 · 摄像头尚未开启');
+  if (mode === 'camera') giftRainUntil = performance.now() + 6000;
+  else previewRain = !previewRain;
+  $('preview-rain').setAttribute('aria-pressed', String(mode === 'camera' || previewRain));
+  if (mode === 'camera' || previewRain) liveRoom.showGift('流光细雨', '你', '╲');
+  setExpression('╲', mode === 'camera' || previewRain ? '一场光的细雨' : '让笑意点亮这一场', mode === 'camera' ? '继续微笑，让细雨随笑意渐浓' : '开启镜头，微笑就有回应');
 });
 document.querySelectorAll('[data-palette]').forEach(button => button.addEventListener('click', () => {
   engine.setPalette(button.dataset.palette);
@@ -111,7 +121,7 @@ $('sensitivity').addEventListener('input', e => {
 });
 function moveGhost(event) {
   if (mode !== 'preview') return;
-  if (event.target.closest('button, input, a, summary')) return;
+  if (event.target.closest('button, input, a, summary, [data-room-ui]')) return;
   const rect = stage.getBoundingClientRect();
   ghost = { x: clamp((event.clientX - rect.left) / rect.width, .18, .82), y: clamp((event.clientY - rect.top) / rect.height, .34, .68) };
 }
@@ -130,17 +140,18 @@ window.addEventListener('pagehide', () => camera.stop());
 
 function frame(now) {
   requestAnimationFrame(frame);
-  if (paused) return;
+  if (paused || liveRoom.closed) { lastFrame = now; return; }
   const elapsed = Math.max(.001, (now - lastFrame) / 1000);
   const dt = Math.min(elapsed, .034); lastFrame = now;
   if (mode === 'preview') {
     const base = Math.min(engine.width * .19, engine.height * .115);
     targetHead = { x: ghost.x * engine.width, y: ghost.y * engine.height, rx: base, ry: base * 1.38, angle: Math.sin(now * .0004) * .025 };
     engine.rainStrength = previewRain ? .65 : 0;
-    if (now >= nextAuto && !engine.lightMotion) { engine.celebrate(currentHead || targetHead); nextAuto = now + 6400; }
+    if (now >= nextAuto && !engine.lightMotion) { if (engine.celebrate(currentHead || targetHead)) liveRoom.showGift('流光烟花', 'Mia'); nextAuto = now + 6400; }
   } else {
     camera.sample(now);
-    if (now - lastSignal > 550) { engine.rainStrength = 0; targetHead = null; currentHead = null; }
+    if (now - lastSignal > 550) { targetHead = null; currentHead = null; }
+    engine.rainStrength = Math.max(now - lastSignal <= 550 ? expressionResult.rain : 0, now < giftRainUntil ? .8 : 0);
   }
   if (targetHead) {
     if (!currentHead) currentHead = { ...targetHead, vx: 0, vy: 0 };
@@ -152,6 +163,9 @@ function frame(now) {
     currentHead.angle += da * blend;
     currentHead.vx = (currentHead.x - oldX) / dt; currentHead.vy = (currentHead.y - oldY) / dt;
   }
+  if (pendingGiftBurst && !engine.rockets.length && !engine.events.length) {
+    pendingGiftBurst = !engine.celebrate(currentHead);
+  }
   engine.update(dt, currentHead); engine.draw(currentHead);
   fpsTime += elapsed; fpsFrames++;
   if (fpsTime >= 1) {
@@ -160,6 +174,7 @@ function frame(now) {
     if (lowFrames >= 3 && engine.limit > 450) { engine.limit = Math.max(450, Math.floor(engine.limit * .8)); lowFrames = 0; }
   }
   if (now - lastUi > 250) {
+    $('preview-rain').setAttribute('aria-pressed', String(mode === 'camera' ? now < giftRainUntil : previewRain));
     $('fps').textContent = fps ? `${fps} FPS` : '采样中';
     $('particle-count').textContent = engine.count + engine.flybys.length;
     $('collision-count').textContent = engine.collisions;

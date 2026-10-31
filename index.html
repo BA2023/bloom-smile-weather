@@ -7,9 +7,21 @@
   <meta name="description" content="微笑落下流光细雨，大笑绽放漫天星焰。BLOOM，一个让笑意有回响的实时 AR 实验。">
   <title>BLOOM — 笑意有回响</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=streak-6">
+  <link rel="stylesheet" href="./style.css?v=live-7">
 </head>
 <body>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-9-5.4-9-12a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.6-9 12-9 12Z"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><path d="M3 10h18v4H3zM5 14v7h14v-7M12 10v11M12 10H8a3 3 0 1 1 3-3l1 3Zm0 0h4a3 3 0 1 0-3-3l-1 3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="m13 3 8 7-8 7v-4c-5 0-8 2-10 7 0-8 3-12 10-12V3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8Zm3 8h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 7h12v11H3zM15 10l6-3v11l-6-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v7a5 5 0 0 1-10 0V3Zm0 2H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 3v5m-4 1h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 64 64"><path d="m32 3 5 21 17-14-12 18 19 4-20 5 14 17-18-12-5 19-5-20-17 14 12-18L3 32l20-5L9 10l18 12 5-19Z" fill="currentColor"/><path d="m32 16 2 12 12 4-12 3-2 13-3-13-13-3 13-4 3-12Z" fill="#fff8dc"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 64 64"><path d="M32 3S10 29 10 42a22 22 0 0 0 44 0C54 29 32 3 32 3Z" fill="currentColor"/><path d="M20 42c0 8 4 12 11 13" fill="none" stroke="#e8ffff" stroke-width="4" stroke-linecap="round"/></symbol>
+  </defs></svg>
+
   <header class="site-header">
     <a class="wordmark" href="./" aria-label="BLOOM 首页"><span class="brand-flower" aria-hidden="true">✳</span>bloom<span class="brand-period">.</span></a>
     <span class="header-tag">A LITTLE JOY. A LITTLE MAGIC.</span>
@@ -18,7 +30,7 @@
 
   <main class="experience">
     <section class="intro" aria-labelledby="page-title">
-      <div class="edition"><span class="edition-line"></span>EXPRESSION EXPERIMENT — 001</div>
+      <div class="edition"><span class="edition-line"></span>LIVE INTERACTION — 001</div>
       <h1 id="page-title">让笑意，<br>有<span class="title-emphasis">回响。</span></h1>
       <p class="english-title">Let it bloom.</p>
       <p class="intro-copy">一个微笑，落下一场光的细雨。<br>放声大笑，让星焰为你绽放。</p>
@@ -56,40 +68,34 @@
         <canvas id="effects" aria-label="细雨与烟花粒子动画">需要支持 Canvas 的浏览器。</canvas>
         <canvas id="foreground-effects" aria-hidden="true"></canvas>
 
-        <div class="stage-topline">
-          <div class="mode-badge" id="mode-badge"><span class="mode-dot"></span><span id="mode-label">艺术预演</span></div>
-          <span class="stage-coordinate">9:16 · LIVE <span aria-hidden="true">↗</span></span>
+        <div class="live-topline" data-room-ui>
+          <div class="host-profile"><div class="host-avatar" aria-hidden="true">b<span>✳</span></div><div class="host-info"><strong>Bloom Studio</strong><span id="room-like-count">12.8K 点赞</span></div><button id="room-follow" class="follow-button" type="button" aria-pressed="false">关注</button></div>
+          <div class="room-audience"><div class="viewer-avatars" aria-hidden="true"><i>M</i><i>L</i></div><span class="viewer-count" aria-label="模拟观看人数1286人">1.2K</span><button id="room-exit" class="room-icon exit-button" type="button" aria-label="离开模拟直播间"><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
         </div>
-
-        <div class="preview-message" id="preview-message"><span class="preview-eyebrow">THIS IS WHAT YOUR JOY LOOKS LIKE</span><p>你是这场星焰的中心。</p></div>
-        <div class="ghost-caption" id="ghost-caption">移动光影轮廓，接住一点星光</div>
-
+        <div class="live-summary" data-room-ui><span class="room-ranking"><svg aria-hidden="true"><use href="#i-trophy"/></svg>人气榜 · 08 <span>›</span></span><span class="live-indicator"><b>LIVE</b>模拟直播间</span></div>
+        <div class="room-mode" data-room-ui><div class="mode-badge" id="mode-badge"><span class="mode-dot"></span><span id="mode-label">特效预演</span></div></div>
+        <div class="stage-controls" data-room-ui><div class="camera-actions"><button id="stop-camera" class="text-button" type="button" hidden>关闭镜头</button><button id="start-camera" class="primary-button" type="button"><svg aria-hidden="true"><use href="#i-camera"/></svg>开启镜头</button></div></div>
         <div class="status-banner" id="status-banner" role="status" aria-live="polite" hidden></div>
-
-        <div class="debug-panel" id="debug-panel" hidden>
-          <div><span>RENDER</span><output id="fps">—</output></div>
-          <div><span>PARTICLES</span><output id="particle-count">0</output></div>
-          <div><span>COLLISIONS</span><output id="collision-count">0</output></div>
-          <div><span>INFERENCE</span><output id="inference-time">—</output></div>
-          <div><span>TRACKER</span><output id="tracker-mode">—</output></div>
-          <div><span>SMILE / JAW</span><output id="expression-values">—</output></div>
+        <div class="debug-panel" id="debug-panel" hidden><div><span>RENDER</span><output id="fps">—</output></div><div><span>PARTICLES</span><output id="particle-count">0</output></div><div><span>COLLISIONS</span><output id="collision-count">0</output></div><div><span>INFERENCE</span><output id="inference-time">—</output></div><div><span>TRACKER</span><output id="tracker-mode">—</output></div><div><span>SMILE / JAW</span><output id="expression-values">—</output></div></div>
+        <div class="live-chat-area" data-room-ui>
+          <div class="gift-notice" id="gift-notice" hidden><div class="gift-sender-avatar" aria-hidden="true">M</div><div><strong id="gift-sender">Mia</strong><span id="gift-message">送出流光烟花</span></div><span class="gift-notice-art" id="gift-notice-art" aria-hidden="true">✷</span><b>×1</b></div>
+          <div id="room-comments" class="room-comments" role="log" aria-label="模拟直播评论" aria-live="polite" aria-relevant="additions"><p><span class="comment-badge">11</span><strong>Mia</strong><span>这场烟花也太好看了 ✨</span></p><p><span class="comment-badge blue">7</span><strong>Noah</strong><span>微笑真的会下雨吗</span></p><p><span class="comment-badge violet">9</span><strong>Luna</strong><span>试试极光那款！</span></p></div>
+          <div class="room-join"><span id="room-join-name">Oliver</span> 加入了直播间</div>
+          <div class="expression-state" id="expression-state"><span class="expression-symbol" id="expression-symbol" aria-hidden="true">✧</span><div><span id="expression-name">让笑意点亮这一场</span><span id="expression-detail">点礼物预演，或开启镜头微笑</span></div></div>
         </div>
-
-        <div class="stage-bottom">
-          <div class="expression-state" id="expression-state"><span class="expression-symbol" id="expression-symbol" aria-hidden="true">✧</span><div><span id="expression-name">先看一场星焰</span><span id="expression-detail">拖动轮廓接星光，或开启镜头</span></div></div>
-          <div class="preview-actions" id="preview-actions"><button id="preview-rain" class="small-action" type="button" aria-pressed="false">微笑雨</button><button id="preview-burst" class="small-action" type="button">绽放烟花 <span aria-hidden="true">✷</span></button></div>
-        </div>
-        <div class="stage-controls">
-          <div class="control-copy"><span class="control-index">01 /</span><span id="control-description">准备好，点亮你的第一场星焰。</span></div>
-          <div class="camera-actions"><button id="stop-camera" class="text-button" type="button" hidden>结束体验</button><button id="start-camera" class="primary-button" type="button">开启摄像头<span aria-hidden="true">↗</span></button></div>
-        </div>
+        <div class="room-reactions" data-room-ui><div id="floating-hearts" class="floating-hearts" aria-hidden="true"></div><button id="room-like" class="room-like-button" type="button" aria-label="为模拟直播点赞"><svg aria-hidden="true"><use href="#i-heart"/></svg></button><span id="room-like-short">12.8K</span></div>
+        <div class="room-toolbar" data-room-ui><form id="room-comment-form" class="room-comment-form"><label class="sr-only" for="room-comment-input">添加模拟评论</label><input id="room-comment-input" type="text" placeholder="说点什么…" maxlength="90" autocomplete="off"><button class="comment-send" type="submit" aria-label="发送模拟评论"><svg aria-hidden="true"><use href="#i-send"/></svg></button></form><button id="room-share" class="room-icon" type="button" aria-label="分享演示链接"><svg aria-hidden="true"><use href="#i-share"/></svg></button><button id="gift-trigger" class="room-icon room-gift-button" type="button" aria-label="打开礼物面板" aria-haspopup="dialog" aria-expanded="false"><svg aria-hidden="true"><use href="#i-gift"/></svg></button></div>
+        <div class="room-toast" id="room-toast" role="status" hidden></div>
+        <div id="gift-panel" class="room-modal" hidden data-room-ui><div class="room-modal-backdrop" data-close-panel="gift-panel"></div><section class="gift-sheet" role="dialog" aria-modal="true" aria-labelledby="gift-panel-title"><div class="sheet-handle"></div><header class="sheet-heading"><h2 id="gift-panel-title">送一份心意</h2><button class="room-icon" type="button" data-close-panel="gift-panel" aria-label="关闭礼物面板"><svg aria-hidden="true"><use href="#i-close"/></svg></button></header><p class="gift-sheet-copy">让这一刻，有一点不一样。</p><div id="preview-actions" class="preview-actions gift-grid"><button id="preview-rain" class="gift-card" type="button" aria-pressed="false" data-gift="rain"><span class="gift-art rain-gift"><svg aria-hidden="true"><use href="#i-drop"/></svg><i>✧</i></span><strong>流光细雨</strong><small>一场温柔的光</small></button><button id="preview-burst" class="gift-card" type="button" data-gift="fireworks"><span class="gift-art firework-gift"><svg aria-hidden="true"><use href="#i-sparkle"/></svg><i>✧</i></span><strong>流光烟花</strong><small>为你绽放</small></button><button id="gift-heart" class="gift-card" type="button" data-gift="heart"><span class="gift-art heart-gift"><svg aria-hidden="true"><use href="#i-heart"/></svg><i>✦</i></span><strong>心动</strong><small>把喜欢点亮</small></button></div><p class="gift-sheet-note">演示礼物 · 无需充值</p></section></div>
+        <div id="share-panel" class="room-modal" hidden data-room-ui><div class="room-modal-backdrop" data-close-panel="share-panel"></div><section class="gift-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-panel-title"><div class="sheet-handle"></div><header class="sheet-heading"><h2 id="share-panel-title">分享这一场</h2><button class="room-icon" type="button" data-close-panel="share-panel" aria-label="关闭分享面板"><svg aria-hidden="true"><use href="#i-close"/></svg></button></header><p class="gift-sheet-copy">把一点快乐，传给想见的人。</p><input id="share-url" aria-label="演示链接" readonly><button id="copy-room-link" class="copy-room-link" type="button">复制演示链接</button></section></div>
+        <div id="room-ended" class="room-ended" hidden data-room-ui><div class="ended-avatar">✳</div><h2>期待下一次相遇</h2><p>模拟直播间预览已结束</p><button id="room-reenter" type="button">重新进入</button></div>
       </div>
       </div>
-      <p class="camera-disclosure" id="camera-disclosure">仅使用摄像头 · 无需麦克风 · 画面不上传<span>当前为艺术预演，尚未开启摄像头</span></p>
+      <p class="camera-disclosure" id="camera-disclosure">模拟直播间 · 互动仅在本机<span>开启镜头后体验表情特效，画面不上传</span></p>
     </section>
   </main>
 
   <footer class="site-footer"><span>BUILT FOR THE MOMENTS THAT MAKE YOU SMILE.</span><span>光有形状，快乐也是。<span class="footer-star" aria-hidden="true">✳</span></span></footer>
-  <script type="module" src="./src/main.js?v=streak-6"></script>
+  <script type="module" src="./src/main.js?v=live-7"></script>
 </body>
 </html>
