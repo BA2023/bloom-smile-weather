@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11120f">
+  <meta name="description" content="微笑落下流光细雨，大笑绽放漫天星焰。BLOOM，一个让笑意有回响的实时 AR 实验。">
+  <title>BLOOM — 笑意有回响</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="wordmark" href="./" aria-label="BLOOM 首页"><span class="brand-flower" aria-hidden="true">✳</span>bloom<span class="brand-period">.</span></a>
+    <span class="header-tag">A LITTLE JOY. A LITTLE MAGIC.</span>
+    <span class="privacy-note"><span class="privacy-dot"></span>镜头留在此刻，也留在本机</span>
+  </header>
+
+  <main class="experience">
+    <section class="intro" aria-labelledby="page-title">
+      <div class="edition"><span class="edition-line"></span>EXPRESSION EXPERIMENT — 001</div>
+      <h1 id="page-title">让笑意，<br>有<span class="title-emphasis">回响。</span></h1>
+      <p class="english-title">Let it bloom.</p>
+      <p class="intro-copy">一个微笑，落下一场光的细雨。<br>放声大笑，让星焰为你绽放。</p>
+
+      <div class="interaction-guide" aria-label="互动方式">
+        <div class="guide-row"><span class="guide-icon rain-icon" aria-hidden="true">╲</span><div><span class="guide-label">微笑</span><span class="guide-description">流光细雨，随笑意渐浓</span></div></div>
+        <div class="guide-row"><span class="guide-icon" aria-hidden="true">✷</span><div><span class="guide-label">大笑</span><span class="guide-description">层层星焰，为此刻绽放</span></div></div>
+        <div class="guide-row"><span class="guide-icon orbit-icon" aria-hidden="true">◌</span><div><span class="guide-label">轻轻晃动头部</span><span class="guide-description">让星光碰撞，再轻盈弹开</span></div></div>
+      </div>
+
+      <fieldset class="palette-field">
+        <legend>为这一刻，选一种光<span>01 — 03</span></legend>
+        <div class="palette-options">
+          <button class="palette-option selected" data-palette="gold" type="button" aria-pressed="true"><span class="palette-swatch swatch-gold"></span>鎏金</button>
+          <button class="palette-option" data-palette="rose" type="button" aria-pressed="false"><span class="palette-swatch swatch-rose"></span>绯樱</button>
+          <button class="palette-option" data-palette="aurora" type="button" aria-pressed="false"><span class="palette-swatch swatch-aurora"></span>极光</button>
+        </div>
+      </fieldset>
+
+      <details class="settings">
+        <summary>体验设置<span aria-hidden="true">＋</span></summary>
+        <label class="range-label" for="sensitivity">表情灵敏度 <output id="sensitivity-value">标准</output></label>
+        <input id="sensitivity" type="range" min="0.75" max="1.25" value="1" step="0.05">
+        <label class="check-label"><input id="debug-toggle" type="checkbox">显示识别与碰撞信息</label>
+        <label class="check-label"><input id="motion-toggle" type="checkbox">轻量动效</label>
+      </details>
+      <div class="intro-footnote">NO FILTER FOR JOY.<span>JUST YOU.</span></div>
+    </section>
+
+    <section class="stage-wrapper" aria-label="AR 互动舞台">
+      <div class="stage" id="stage">
+        <video id="camera" autoplay muted playsinline aria-hidden="true" aria-label="本机摄像头实时画面"></video>
+        <div class="stage-vignette"></div>
+        <canvas id="effects" aria-label="细雨与烟花粒子动画">需要支持 Canvas 的浏览器。</canvas>
+
+        <div class="stage-topline">
+          <div class="mode-badge" id="mode-badge"><span class="mode-dot"></span><span id="mode-label">艺术预演</span></div>
+          <span class="stage-coordinate">LIVE CANVAS <span aria-hidden="true">↗</span></span>
+        </div>
+
+        <div class="preview-message" id="preview-message"><span class="preview-eyebrow">THIS IS WHAT YOUR JOY LOOKS LIKE</span><p>你是这场星焰的中心。</p></div>
+        <div class="ghost-caption" id="ghost-caption">移动光影轮廓，接住一点星光</div>
+
+        <div class="status-banner" id="status-banner" role="status" aria-live="polite" hidden></div>
+
+        <div class="debug-panel" id="debug-panel" hidden>
+          <div><span>RENDER</span><output id="fps">—</output></div>
+          <div><span>PARTICLES</span><output id="particle-count">0</output></div>
+          <div><span>COLLISIONS</span><output id="collision-count">0</output></div>
+          <div><span>INFERENCE</span><output id="inference-time">—</output></div>
+          <div><span>TRACKER</span><output id="tracker-mode">—</output></div>
+          <div><span>SMILE / JAW</span><output id="expression-values">—</output></div>
+        </div>
+
+        <div class="stage-bottom">
+          <div class="expression-state" id="expression-state"><span class="expression-symbol" id="expression-symbol" aria-hidden="true">✧</span><div><span id="expression-name">先看一场星焰</span><span id="expression-detail">开启镜头，让下一场由你点亮</span></div></div>
+          <div class="preview-actions" id="preview-actions"><button id="preview-rain" class="small-action" type="button" aria-pressed="false">微笑雨</button><button id="preview-burst" class="small-action" type="button">绽放烟花 <span aria-hidden="true">✷</span></button></div>
+        </div>
+      </div>
+
+      <div class="stage-controls">
+        <div class="control-copy"><span class="control-index">01 /</span><span id="control-description">准备好，点亮你的第一场星焰。</span></div>
+        <div class="camera-actions"><button id="stop-camera" class="text-button" type="button" hidden>结束体验</button><button id="start-camera" class="primary-button" type="button">开启摄像头<span aria-hidden="true">↗</span></button></div>
+      </div>
+      <p class="camera-disclosure" id="camera-disclosure">仅使用摄像头 · 无需麦克风 · 画面不上传<span>当前为艺术预演，尚未开启摄像头</span></p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><span>BUILT FOR THE MOMENTS THAT MAKE YOU SMILE.</span><span>光有形状，快乐也是。<span class="footer-star" aria-hidden="true">✳</span></span></footer>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

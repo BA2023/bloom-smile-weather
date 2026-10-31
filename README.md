@@ -1,2 +1,68 @@
-# bloom-smile-weather
-BLOOM — smile-powered rain, layered fireworks and head-collision AR. Live demo: https://bloom-smile-weather.freesnipe20.chatgpt.site
+# BLOOM — 笑意有回响
+
+一个由表情驱动的 AR 互动原型。微笑时落下流光细雨，大笑时绽放层叠星焰，烟花粒子与头部轮廓碰撞、反弹。支持鎏金、绯樱、极光三种配色。
+
+在线体验：<https://bloom-smile-weather.freesnipe20.chatgpt.site>（无需登录；摄像头由浏览器请求授权）
+
+## 运行
+
+需要 Node.js 20+，构建和测试无额外 npm 依赖。先运行一次 `npm run setup`，从固定上游地址下载识别运行库、WASM 和模型，并根据 `assets.lock.json` 校验 SHA-256。构建后这些资源与网页同源托管，体验时无需向外部 CDN 请求识别模型。仓库不提交大型生成资源；锁文件与下载脚本可复现线上版本。
+
+```sh
+git clone https://github.com/BA2023/bloom-smile-weather.git
+cd bloom-smile-weather
+npm run setup
+npm test
+npm run build
+npm run dev
+```
+
+访问终端显示的 `http://127.0.0.1:4173`。线上使用 HTTPS。`dist/` 是可直接托管的静态产物，使用相对路径，支持部署到子目录。
+
+## 体验
+
+默认进入明确标注的艺术预演，摄像头不会自动开启。点击“绽放烟花”和“微笑雨”体验特效，移动指针或在舞台上触摸来移动光影碰撞轮廓。
+
+点击“开启摄像头”并授权，加载完成后进入实时互动。轻轻微笑触发雨；强微笑结合张口并持续一小段时间触发烟花。笑容恢复后可再次触发，连续大笑不会逐帧发射。晃动头部可观察星光弹开；“结束体验”关闭媒体轨道并释放模型与 Worker。
+
+表情灵敏度、调试信息与轻量动效位于“体验设置”。开启调试可查看真实表情系数、推理耗时、粒子数、碰撞数和当前推理路径。
+
+## 视觉设计
+
+- 深色舞台与低饱和界面，让镜头和特效成为视觉中心。
+- 烟花由升空光迹、主花、错时伴生花、冷色内环、闪烁余辉构成；以细长弧线和发光粒子表现层次。
+- 星轨保留固定长度历史，碰撞后轨迹能够自然转折；不依赖全屏模糊和无限粒子堆叠。
+- 色彩有三组受控方案：香槟金与淡玫瑰、粉紫与暖白、薄荷青与极光紫。
+
+## 技术与边界
+
+- 原生 ES Modules、Canvas 2D、MediaPipe Face Landmarker。
+- 使用 `mouthSmileLeft` / `mouthSmileRight` 的均值及 `jawOpen`，组合平滑、迟滞、持续时间、冷却和重新武装条件。“大笑”是可见表情代理，不是音频或真实情绪识别。
+- 默认单人脸。四个关键点拟合并外扩旋转椭圆，近似可见头部范围；这不是完整头发/耳朵分割或三维刚体。
+- 同一坐标函数处理 `object-fit:cover`、镜像和舞台尺寸；物理以 CSS 像素计算，DPR 仅影响渲染清晰度。
+- 连续线段与椭圆求交防止高速穿透；反射、阻尼、有限头部速度和表面投影约束碰撞能量。
+- 首选经典 Worker 内动态加载模型，因为当前固定版本 WASM 加载器调用 `importScripts`。不兼容设备回退到主线程低频推理，界面可查看真实路径。
+- 视频帧单在途，Worker 识别约每 75ms 最多一次，回退约每 130ms 最多一次；所有视频帧在浏览器本机处理，不上传。
+- 粒子使用预分配数组池、有限生命周期和总量上限；轨迹历史固定 12 点。默认桌面上限 1350、窄屏 850，持续低帧率时下调，DPR 上限 1.6。
+- 页面隐藏时停止推理与动画推进；停止体验或离开页面时释放摄像头、模型和 Worker。默认不申请麦克风。
+
+## 验证
+
+详见 `ACCEPTANCE.md`。本轮已运行 8 项核心测试，以及输入静态肖像的合成视频链路，验证真实模型加载、Worker 推理、面部检测与停止释放。该测试不等于真人微笑、大笑和真实手机摄像头测试；这些仍需用户真机验收。
+
+本地浏览器测试页可通过以下命令准备，输入一张本地肖像供模型验证，仅复制到被忽略的构建目录：
+
+```sh
+node scripts/prepare-browser-qa.mjs /absolute/path/to/portrait.png
+```
+
+重新 `npm run build` 会清理这些测试页面。最终发布构建不包含题目图集或测试肖像。
+
+## 依赖与许可
+
+- MediaPipe Tasks Vision 固定版本 `0.10.22-rc.20250304`，来源 jsDelivr 的 npm 分发包；Apache 2.0，许可证见 `public/vendor/LICENSE`。
+- 官方 Face Landmarker float16 v1 模型：`https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`。
+- MediaPipe 文档：<https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/web_js>。
+- 字体通过 Google Fonts 加载 DM Sans 与 Instrument Serif；无法连接时使用系统字体，互动功能不依赖该请求。
+
+原型原创代码目前没有单独授予开源许可证；公开源码可阅读与授权使用的范围应由作者在提交前确定。

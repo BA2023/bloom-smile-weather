@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BLOOM 烟花视觉验证</title>
+<style>body{background:#11120f;color:#e9dfcb;font:14px system-ui;margin:24px}button{padding:12px;margin:4px;color:inherit;background:#29291e;border:1px solid #57523e;border-radius:4px}canvas{width:min(680px,100%);aspect-ratio:1;background:#090c12;border:1px solid #393a31;display:block;margin-top:16px}</style>
+<p>真实粒子引擎的固定时刻画面 / 非设计效果图</p><div id="buttons"><button data-time="1.15">绽放 1.15 秒</button><button data-time="1.55">绽放 1.55 秒</button><button data-time="2.3">余辉 2.3 秒</button><button data-palette="gold">鎏金</button><button data-palette="rose">绯樱</button><button data-palette="aurora">极光</button></div><canvas></canvas><p id="stats"></p>
+<script type="module">
+import {ParticleEngine} from '../src/particles.js';
+let palette='gold',time=1.55;
+function render(){const canvas=document.querySelector('canvas');const e=new ParticleEngine(canvas);e.resize(680,680);e.setPalette(palette);const head={x:340,y:370,rx:70,ry:97,angle:0};e.celebrate(head);for(let t=0;t<time;t+=1/120)e.update(1/120,head);e.draw(head);document.querySelector('#stats').textContent=`PALETTE ${palette} / TIME ${time}s / PARTICLES ${e.count} / COLLISIONS ${e.collisions}`}
+document.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.time)time=Number(b.dataset.time);if(b.dataset.palette)palette=b.dataset.palette;render()});render();
+</script></html>

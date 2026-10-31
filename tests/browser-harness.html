@@ -1,0 +1,34 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BLOOM 合成摄像头验证</title>
+<style>body{background:#151712;color:#eee;font:16px system-ui;padding:30px}button{padding:14px}pre{white-space:pre-wrap}video,canvas{width:250px;vertical-align:top}</style>
+<h1>合成摄像头验证</h1><p>输入来自题目中的静态肖像。只测试模型、Worker、视频链路和资源释放，不代表真人表情验收。</p>
+<button id="run">运行合成摄像头测试</button><pre id="report">等待运行</pre><video muted playsinline></video><canvas></canvas>
+<script type="module">
+import { CameraTracker } from '../src/tracking.js';
+const button=document.querySelector('button'), report=document.querySelector('pre'), video=document.querySelector('video'), canvas=document.querySelector('canvas');
+button.onclick=async()=>{
+  button.disabled=true;
+  const data={input:'static reference portrait → canvas.captureStream (no hardware camera)',states:[],signals:0,faces:0,durations:[],stopped:false};
+  let timer,draw,loop,tracker;
+  const original=navigator.mediaDevices.getUserMedia;
+  try{
+    const image=new Image();image.src='./face.png';await image.decode();
+    canvas.width=640;canvas.height=480;
+    const ctx=canvas.getContext('2d');
+    function paint(){ctx.fillStyle='#262626';ctx.fillRect(0,0,640,480);const k=Math.min(640/image.width,480/image.height);ctx.drawImage(image,(640-image.width*k)/2,(480-image.height*k)/2,image.width*k,image.height*k)}
+    paint();draw=setInterval(paint,65);
+    let stream;
+    navigator.mediaDevices.getUserMedia=async()=>{stream=canvas.captureStream(15);return stream;};
+    tracker=new CameraTracker(video,signal=>{data.signals++;if(signal)data.faces++;data.durations.push(tracker.inferenceMs);report.textContent=JSON.stringify(data,null,2)},state=>{data.states.push(state);report.textContent=JSON.stringify(data,null,2)});
+    await tracker.start();data.mode=tracker.mode;
+    await new Promise((resolve,reject)=>{
+      timer=setTimeout(()=>reject(new Error('Timed out waiting for 24 inference results')),20000);
+      function tick(now){tracker.sample(now);if(data.signals>=24){resolve();return}loop=requestAnimationFrame(tick)}loop=requestAnimationFrame(tick);
+    });
+    data.mode=tracker.mode;tracker.stop();
+    data.stopped=stream.getTracks().every(t=>t.readyState==='ended')&&!tracker.worker&&!tracker.tracker&&video.srcObject===null;
+    data.meanInferenceMs=data.durations.reduce((a,b)=>a+b,0)/data.durations.length;
+    data.passed=data.faces>0&&data.stopped;delete data.durations;
+  }catch(error){data.error=error.message;data.passed=false}
+  finally{clearTimeout(timer);clearInterval(draw);cancelAnimationFrame(loop);tracker?.stop();navigator.mediaDevices.getUserMedia=original;report.textContent=JSON.stringify(data,null,2);button.disabled=false;}
+};
+</script></html>

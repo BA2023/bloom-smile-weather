@@ -1,0 +1,10 @@
+dist/
+node_modules/
+.DS_Store
+*.zip
+qa/
+
+# Fetched and hash-verified by npm run setup
+public/vendor/vision_bundle.mjs
+public/vendor/wasm/
+public/models/*.task
