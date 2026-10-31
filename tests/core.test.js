@@ -2,6 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { projectLandmark, collideEllipse, headEllipse } from '../src/geometry.js';
 import { ExpressionState } from '../src/expression.js';
+import { projectSpark } from '../src/particles.js';
+
+test('foreground perspective grows toward the lens and crosses the portrait frame', () => {
+  const spark = { x: 180, y: 190, dx: 180, dy: -90, duration: 1.8 };
+  const far = projectSpark(spark, .3), near = projectSpark(spark, 1.5);
+  assert.ok(far.x < 360 && near.x > 360);
+  assert.ok(near.scale > far.scale * 3);
+  assert.ok(near.x - projectSpark(spark, 1.4).x > far.x - projectSpark(spark, .2).x);
+});
+test('foreground projection stays finite at and beyond its lifetime', () => {
+  const spark = { x: 180, y: 190, dx: -200, dy: -130, duration: 1.8 };
+  for (const age of [0, .5, 1.8, 2]) {
+    const p = projectSpark(spark, age);
+    assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y) && p.scale > 0);
+  }
+});
 
 test('cover crop and mirrored landmarks agree with video display', () => {
   assert.deepEqual(projectLandmark({ x: .25, y: .5 }, 1280, 720, 640, 360), { x: 480, y: 180 });

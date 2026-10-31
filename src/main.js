@@ -1,11 +1,11 @@
-import { ParticleEngine, PALETTES } from './particles.js?v=portrait-2';
+import { ParticleEngine, PALETTES } from './particles.js?v=depth-3';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
 
 const $ = id => document.getElementById(id);
 const stage = $('stage'), canvas = $('effects'), video = $('camera');
-const engine = new ParticleEngine(canvas), expressions = new ExpressionState();
+const engine = new ParticleEngine(canvas, $('foreground-effects')), expressions = new ExpressionState();
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 $('motion-toggle').checked = reduced; engine.lightMotion = reduced;
 let mode = 'preview', currentHead = null, targetHead = null, lastSignal = 0, pending = false, startAttempt = 0;
@@ -16,9 +16,15 @@ let ghost = { x: .50, y: .53 }, paused = document.hidden;
 
 function measure() {
   const rect = stage.getBoundingClientRect(); engine.resize(rect.width, rect.height);
+  positionForeground();
   if (mode === 'camera') { targetHead = null; currentHead = null; }
 }
+function positionForeground() {
+  const rect = stage.getBoundingClientRect(), front = $('foreground-effects');
+  Object.assign(front.style, { left: `${rect.left - rect.width * .64}px`, top: `${rect.top - rect.height * .24}px`, width: `${rect.width * 2.28}px`, height: `${rect.height * 1.48}px` });
+}
 new ResizeObserver(measure).observe(stage);
+window.addEventListener('scroll', positionForeground, { passive: true });
 
 function banner(text, error = false) {
   $('status-banner').textContent = text; $('status-banner').hidden = !text;
@@ -161,7 +167,7 @@ function frame(now) {
   }
   if (now - lastUi > 250) {
     $('fps').textContent = fps ? `${fps} FPS` : '采样中';
-    $('particle-count').textContent = engine.count;
+    $('particle-count').textContent = engine.count + engine.flybys.length;
     $('collision-count').textContent = engine.collisions;
     $('inference-time').textContent = camera.active ? `${camera.inferenceMs.toFixed(1)} ms` : '—';
     $('tracker-mode').textContent = camera.mode;

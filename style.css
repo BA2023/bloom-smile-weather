@@ -85,3 +85,11 @@
   #expression-name{font-size:11px}#expression-detail{font-size:9px}
   .camera-actions{gap:6px}.primary-button{font-size:11px;gap:10px}
 }
+
+/* This uncut foreground crosses the phone frame without intercepting gestures. */
+body{overflow-x:clip}
+.stage-shell{position:relative;isolation:isolate;width:min(100%,max(260px,calc((100svh - 156px) * 9 / 16)));margin-inline:auto;flex-shrink:0}
+.stage-shell>.stage{width:100%}
+.foreground-window{position:fixed;inset:0;z-index:20;overflow:clip;pointer-events:none}
+#foreground-effects{position:absolute;width:0;height:0;pointer-events:none;mask-image:linear-gradient(to bottom,#000 0%,#000 57%,transparent 68%)}
+@media(max-width:740px){.stage-shell{width:min(100%,max(248px,calc((100svh - 88px) * 9 / 16)))}}
