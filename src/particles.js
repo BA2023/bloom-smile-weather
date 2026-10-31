@@ -75,9 +75,9 @@ export class ParticleEngine {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.flybys.length = 0; this.ripples.length = 0;
     if (this.foreground) {
-      this.frontWidth = width * 2.28; this.frontHeight = height * 1.48;
+      this.frontWidth = width; this.frontHeight = height;
       this.foreground.width = Math.round(this.frontWidth * dpr); this.foreground.height = Math.round(this.frontHeight * dpr);
-      this.frontCtx.setTransform(dpr, 0, 0, dpr, width * .64 * dpr, height * .24 * dpr);
+      this.frontCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
   }
   spawn(x, y, vx, vy, options = {}) {
@@ -144,7 +144,9 @@ export class ParticleEngine {
       for (let i = 0; i < count && this.flybys.length < 100; i++) {
         // Most rays travel upward and sideways, leaving face and controls readable.
         const angle = Math.PI * (.94 + i / count * 1.12) + random(-.04, .04);
-        const speed = random(145, 245) * scale;
+        // A few nearly axial rays stay visible as they grow close to the lens.
+        const towardLens = i % 7 === 0;
+        const speed = (towardLens ? random(25, 55) : random(145, 245)) * scale;
         this.flybys.push({ x, y, dx: Math.cos(angle) * speed, dy: Math.sin(angle) * speed * .8,
           age: -.10 - random(0, .14), duration: random(1.55, 1.95), size: random(1.5, 3), color: i % 7 === 0 ? 3 : i % 3 === 0 ? 0 : 1 });
       }
@@ -316,9 +318,9 @@ export class ParticleEngine {
   drawForeground() {
     if (!this.frontCtx) return;
     const ctx = this.frontCtx, w = this.width, h = this.height;
-    ctx.clearRect(-w * .64, -h * .24, this.frontWidth, this.frontHeight);
+    ctx.clearRect(0, 0, this.frontWidth, this.frontHeight);
     ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-    ctx.save(); ctx.beginPath(); ctx.rect(-w * .64, -h * .24, this.frontWidth, h * .96); ctx.clip();
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, this.frontWidth, h * .72); ctx.clip();
     for (const spark of this.flybys) {
       if (spark.age <= 0) continue;
       const t = spark.age / spark.duration, point = projectSpark(spark, spark.age);

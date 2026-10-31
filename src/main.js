@@ -1,4 +1,4 @@
-import { ParticleEngine, PALETTES } from './particles.js?v=depth-3';
+import { ParticleEngine, PALETTES } from './particles.js?v=depth-4';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
@@ -16,15 +16,9 @@ let ghost = { x: .50, y: .53 }, paused = document.hidden;
 
 function measure() {
   const rect = stage.getBoundingClientRect(); engine.resize(rect.width, rect.height);
-  positionForeground();
   if (mode === 'camera') { targetHead = null; currentHead = null; }
 }
-function positionForeground() {
-  const rect = stage.getBoundingClientRect(), front = $('foreground-effects');
-  Object.assign(front.style, { left: `${rect.left - rect.width * .64}px`, top: `${rect.top - rect.height * .24}px`, width: `${rect.width * 2.28}px`, height: `${rect.height * 1.48}px` });
-}
 new ResizeObserver(measure).observe(stage);
-window.addEventListener('scroll', positionForeground, { passive: true });
 
 function banner(text, error = false) {
   $('status-banner').textContent = text; $('status-banner').hidden = !text;

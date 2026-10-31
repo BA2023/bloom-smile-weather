@@ -7,7 +7,7 @@
   <meta name="description" content="微笑落下流光细雨，大笑绽放漫天星焰。BLOOM，一个让笑意有回响的实时 AR 实验。">
   <title>BLOOM — 笑意有回响</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=depth-3">
+  <link rel="stylesheet" href="./style.css?v=depth-4">
 </head>
 <body>
   <header class="site-header">
@@ -54,6 +54,7 @@
         <video id="camera" autoplay muted playsinline aria-hidden="true" aria-label="本机摄像头实时画面"></video>
         <div class="stage-vignette"></div>
         <canvas id="effects" aria-label="细雨与烟花粒子动画">需要支持 Canvas 的浏览器。</canvas>
+        <canvas id="foreground-effects" aria-hidden="true"></canvas>
 
         <div class="stage-topline">
           <div class="mode-badge" id="mode-badge"><span class="mode-dot"></span><span id="mode-label">艺术预演</span></div>
@@ -87,9 +88,8 @@
       <p class="camera-disclosure" id="camera-disclosure">仅使用摄像头 · 无需麦克风 · 画面不上传<span>当前为艺术预演，尚未开启摄像头</span></p>
     </section>
   </main>
-  <div class="foreground-window" aria-hidden="true"><canvas id="foreground-effects"></canvas></div>
 
   <footer class="site-footer"><span>BUILT FOR THE MOMENTS THAT MAKE YOU SMILE.</span><span>光有形状，快乐也是。<span class="footer-star" aria-hidden="true">✳</span></span></footer>
-  <script type="module" src="./src/main.js?v=depth-3"></script>
+  <script type="module" src="./src/main.js?v=depth-4"></script>
 </body>
 </html>

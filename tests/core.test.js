@@ -4,7 +4,7 @@ import { projectLandmark, collideEllipse, headEllipse } from '../src/geometry.js
 import { ExpressionState } from '../src/expression.js';
 import { projectSpark } from '../src/particles.js';
 
-test('foreground perspective grows toward the lens and crosses the portrait frame', () => {
+test('foreground perspective accelerates toward the lens before exiting the field of view', () => {
   const spark = { x: 180, y: 190, dx: 180, dy: -90, duration: 1.8 };
   const far = projectSpark(spark, .3), near = projectSpark(spark, 1.5);
   assert.ok(far.x < 360 && near.x > 360);
