@@ -1,8 +1,14 @@
-import { ParticleEngine, PALETTES } from './particles.js?v=live-7';
+import { ParticleEngine, PALETTES } from './particles.js?v=center-8';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
-import { createLiveRoom } from './live-room.js?v=live-7';
+import { createLiveRoom } from './live-room.js?v=center-8';
+
+// A fresh visit or refresh starts at the centered preview; explicit anchors still work.
+if (!location.hash) {
+  history.scrollRestoration = 'manual';
+  requestAnimationFrame(() => window.scrollTo(0, 0));
+}
 
 const $ = id => document.getElementById(id);
 const stage = $('stage'), canvas = $('effects'), video = $('camera');

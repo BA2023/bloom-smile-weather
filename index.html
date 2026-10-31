@@ -7,7 +7,7 @@
   <meta name="description" content="微笑落下流光细雨，大笑绽放漫天星焰。BLOOM，一个让笑意有回响的实时 AR 实验。">
   <title>BLOOM — 笑意有回响</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=live-7">
+  <link rel="stylesheet" href="./style.css?v=center-8">
 </head>
 <body>
   <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
@@ -26,6 +26,7 @@
     <a class="wordmark" href="./" aria-label="BLOOM 首页"><span class="brand-flower" aria-hidden="true">✳</span>bloom<span class="brand-period">.</span></a>
     <span class="header-tag">A LITTLE JOY. A LITTLE MAGIC.</span>
     <span class="privacy-note"><span class="privacy-dot"></span>镜头留在此刻，也留在本机</span>
+    <a class="mobile-open-link" href="#mobile-access">手机打开 <span aria-hidden="true">↗</span></a>
   </header>
 
   <main class="experience">
@@ -93,9 +94,19 @@
       </div>
       <p class="camera-disclosure" id="camera-disclosure">模拟直播间 · 互动仅在本机<span>开启镜头后体验表情特效，画面不上传</span></p>
     </section>
+    <aside id="mobile-access" class="mobile-access" aria-labelledby="mobile-access-title">
+      <span class="mobile-access-eyebrow">TAKE A LITTLE JOY WITH YOU</span>
+      <h2 id="mobile-access-title">手机上，也能绽放。</h2>
+      <p>扫一扫，在手机浏览器里继续体验。</p>
+      <div class="mobile-qr-plate"><img src="./mobile-qr.svg" width="180" height="180" alt="扫描二维码，在手机上打开 BLOOM 直播间"></div>
+      <label class="sr-only" for="mobile-url">手机访问链接</label>
+      <input id="mobile-url" readonly value="https://bloom-smile-weather.freesnipe20.chatgpt.site/">
+      <button id="copy-mobile-link" type="button">复制手机链接 <span aria-hidden="true">↗</span></button>
+      <span id="mobile-copy-status" class="mobile-copy-status" role="status">点击开启镜头后，允许摄像头即可互动。</span>
+    </aside>
   </main>
 
   <footer class="site-footer"><span>BUILT FOR THE MOMENTS THAT MAKE YOU SMILE.</span><span>光有形状，快乐也是。<span class="footer-star" aria-hidden="true">✳</span></span></footer>
-  <script type="module" src="./src/main.js?v=live-7"></script>
+  <script type="module" src="./src/main.js?v=center-8"></script>
 </body>
 </html>

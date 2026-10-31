@@ -71,6 +71,18 @@ export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
     try { await navigator.clipboard.writeText($('share-url').value); toast('演示链接已复制'); closePanel(); }
     catch { $('share-url').focus(); $('share-url').select(); toast('请复制选中的链接'); }
   });
+  $('copy-mobile-link').addEventListener('click', async () => {
+    const field = $('mobile-url');
+    try {
+      await navigator.clipboard.writeText(field.value);
+      $('mobile-copy-status').textContent = '链接已复制，可在手机浏览器打开。';
+      $('copy-mobile-link').textContent = '已复制 ✓';
+      setTimeout(() => { $('copy-mobile-link').textContent = '复制手机链接 ↗'; }, 2300);
+    } catch {
+      field.focus(); field.select();
+      $('mobile-copy-status').textContent = '链接已选中，请复制后在手机浏览器打开。';
+    }
+  });
   $('room-exit').addEventListener('click', () => {
     closePanel(false); closed = true; onLeave(); $('room-ended').hidden = false;
     $('room-reenter').focus({ preventScroll: true });
