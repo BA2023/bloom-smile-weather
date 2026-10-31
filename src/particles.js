@@ -24,7 +24,7 @@ export class ParticleEngine {
     this.flybys = []; this.ripples = []; this.rainEnvelope = 0;
     this.capacity = 1800; this.limit = innerWidth < 740 ? 850 : 1350; this.count = 0;
     for (const key of fields) this[key] = new Float32Array(this.capacity);
-    this.trailLength = 12; this.trailHead = 0; this.trailTimer = 0;
+    this.trailLength = 20; this.trailHead = 0; this.trailTimer = 0;
     this.trailX = new Float32Array(this.capacity * this.trailLength);
     this.trailY = new Float32Array(this.capacity * this.trailLength);
     this.time = 0; this.rockets = []; this.flashes = []; this.impacts = []; this.events = [];
@@ -97,12 +97,12 @@ export class ParticleEngine {
     if (this.rockets.length || this.events.length > 2) return false;
     const w = this.width, h = this.height;
     const cx = clamp(head?.x ?? w * .52, w * .27, w * .73);
-    const cy = clamp(head ? head.y - head.ry - h * .075 : h * .32, h * .28, h * .44);
-    const spread = Math.min(w * .16, 110);
-    this.launch(cx, cy, 1.48 * strength, 0);
+    const cy = clamp(head ? head.y - head.ry - h * .12 : h * .28, h * .22, h * .42);
+    const spread = Math.min(w * .22, 145);
+    this.launch(cx, cy, 1.12 * strength, 0);
     if (!this.lightMotion) {
-      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 60, w - 60), y: cy + h * .10, scale: 1.24 * strength, variant: 1 });
-      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 60, w - 60), y: cy + h * .06, scale: 1.32 * strength, variant: 2 });
+      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 60, w - 60), y: cy + h * .10, scale: .74 * strength, variant: 1 });
+      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 60, w - 60), y: cy + h * .06, scale: .84 * strength, variant: 2 });
     }
     return true;
   }
@@ -248,8 +248,13 @@ export class ParticleEngine {
         ctx.moveTo(this.trailX[base+a],this.trailY[base+a]);
         ctx.lineTo(this.trailX[base+b],this.trailY[base+b]);
       }
-      ctx.strokeStyle = `rgba(${this.rgbs[color]},${(.08+j/this.trailLength*.58).toFixed(3)})`;
-      ctx.lineWidth = 1.0; ctx.stroke();
+      const alpha = .08 + j / this.trailLength * .58;
+      if (!this.lightMotion && this.limit > 450) {
+        ctx.strokeStyle = `rgba(${this.rgbs[color]},${(alpha * .28).toFixed(3)})`;
+        ctx.lineWidth = 4.6; ctx.stroke();
+      }
+      ctx.strokeStyle = `rgba(${this.rgbs[color]},${alpha.toFixed(3)})`;
+      ctx.lineWidth = 1.5 + j / this.trailLength * .8; ctx.stroke();
     }
     for (let i = 0; i < this.count; i++) if (this.kind[i] !== 0) {
       const age = 1 - this.life[i] / this.total[i];
@@ -260,12 +265,12 @@ export class ParticleEngine {
       if (i % 13 === 0 && age < .8) {
         ctx.beginPath(); ctx.moveTo(this.x[i] - size * 1.5, this.y[i]); ctx.lineTo(this.x[i] + size * 1.5, this.y[i]);
         ctx.moveTo(this.x[i], this.y[i] - size * 2); ctx.lineTo(this.x[i], this.y[i] + size * 2);
-        ctx.strokeStyle = `rgba(${this.rgbs[this.color[i]]},.55)`; ctx.lineWidth = .45; ctx.stroke();
+        ctx.strokeStyle = `rgba(${this.rgbs[this.color[i]]},.55)`; ctx.lineWidth = .8; ctx.stroke();
       }
     }
     ctx.globalAlpha = 1;
     for (const r of this.rockets) {
-      ctx.beginPath(); ctx.moveTo(r.x, r.y + 35); ctx.lineTo(r.x, r.y); ctx.strokeStyle = 'rgba(242,209,161,.6)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(r.x, r.y + 50); ctx.lineTo(r.x, r.y); ctx.strokeStyle = 'rgba(242,209,161,.6)'; ctx.lineWidth = 1.8; ctx.stroke();
       ctx.drawImage(this.sprites[0], r.x - 7, r.y - 7, 14, 14);
     }
     for (const hit of this.impacts) {
@@ -326,17 +331,17 @@ export class ParticleEngine {
       const t = spark.age / spark.duration, point = projectSpark(spark, spark.age);
       const fade = Math.min(1, spark.age * 5) * Math.min(1, (1 - t) * 4);
       const size = spark.size * point.scale * (1 + t * 1.5);
-      for (let segment = 0; segment < 5; segment++) {
-        const a = projectSpark(spark, Math.max(0, spark.age - (5 - segment) * .024));
-        const b = projectSpark(spark, Math.max(0, spark.age - (4 - segment) * .024));
-        ctx.globalAlpha = fade * (.13 + segment * .12);
-        ctx.strokeStyle = this.palette.colors[spark.color]; ctx.lineWidth = Math.max(.6, size * .42 * (segment + 1) / 5);
+      for (let segment = 0; segment < 6; segment++) {
+        const a = projectSpark(spark, Math.max(0, spark.age - (6 - segment) * .032));
+        const b = projectSpark(spark, Math.max(0, spark.age - (5 - segment) * .032));
+        ctx.globalAlpha = fade * (.13 + segment * .10);
+        ctx.strokeStyle = this.palette.colors[spark.color]; ctx.lineWidth = Math.max(1.1, size * .62 * (segment + 1) / 6);
         ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       }
       ctx.globalAlpha = fade * .85;
       ctx.drawImage(this.sprites[spark.color], point.x - size * 4, point.y - size * 4, size * 8, size * 8);
       if (t > .4) {
-        ctx.globalAlpha = fade * .7; ctx.lineWidth = .7; ctx.strokeStyle = '#fff7df';
+        ctx.globalAlpha = fade * .7; ctx.lineWidth = 1.1; ctx.strokeStyle = '#fff7df';
         ctx.beginPath(); ctx.moveTo(point.x - size * 1.8, point.y); ctx.lineTo(point.x + size * 1.8, point.y);
         ctx.moveTo(point.x, point.y - size * 2.6); ctx.lineTo(point.x, point.y + size * 2.6); ctx.stroke();
       }

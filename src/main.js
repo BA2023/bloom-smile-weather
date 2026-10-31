@@ -1,4 +1,4 @@
-import { ParticleEngine, PALETTES } from './particles.js?v=bloom-5';
+import { ParticleEngine, PALETTES } from './particles.js?v=streak-6';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
