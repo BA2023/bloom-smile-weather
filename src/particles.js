@@ -69,12 +69,12 @@ export class ParticleEngine {
     if (this.rockets.length || this.events.length > 2) return false;
     const w = this.width, h = this.height;
     const cx = clamp(head?.x ?? w * .52, w * .27, w * .73);
-    const cy = clamp(head ? head.y - head.ry - h * .12 : h * .28, h * .17, h * .38);
-    const spread = Math.min(w * .20, 135);
-    this.launch(cx, cy, 1.0 * strength, 0);
+    const cy = clamp(head ? head.y - head.ry - h * .12 : h * .28, h * .22, h * .42);
+    const spread = Math.min(w * .22, 145);
+    this.launch(cx, cy, 1.12 * strength, 0);
     if (!this.lightMotion) {
-      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 70, w - 70), y: cy + h * .10, scale: .64 * strength, variant: 1 });
-      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 70, w - 70), y: cy + h * .06, scale: .72 * strength, variant: 2 });
+      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 60, w - 60), y: cy + h * .10, scale: .74 * strength, variant: 1 });
+      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 60, w - 60), y: cy + h * .06, scale: .84 * strength, variant: 2 });
     }
     return true;
   }
@@ -85,7 +85,8 @@ export class ParticleEngine {
       tx: x, ty: y, life: 0, duration: random(.67, .83), scale, variant });
   }
   burst(x, y, scale, variant = 0) {
-    scale *= Math.min(this.width / 750, 1.08) * (this.lightMotion ? .78 : 1);
+    // Art direction is calibrated to a phone portrait, not a wide desktop canvas.
+    scale *= clamp(Math.min(this.width / 480, this.height / 760), .72, 1.28) * (this.lightMotion ? .78 : 1);
     const spokes = this.lightMotion ? 40 : 76;
     const rotation = random(0, TAU);
     for (let i = 0; i < spokes; i++) {
@@ -95,7 +96,7 @@ export class ParticleEngine {
       const color = i % 9 === 0 ? 3 : i % 5 === 0 ? 0 : 1;
       for (let j = 0; j < (this.lightMotion ? 1 : 3); j++) {
         const angle = a + random(-.012, .012), v = speed * (1 - j * .14);
-        this.spawn(x, y, Math.cos(angle) * v, Math.sin(angle) * v * .88, { color, life: random(2.0, 2.8) - j * .15, size: random(2.7, 4.5) * scale, drag: .36 + j * .1 });
+        this.spawn(x, y, Math.cos(angle) * v, Math.sin(angle) * v * .88, { color, life: random(2.1, 2.9) - j * .15, size: random(3.3, 5.4) * scale, drag: .36 + j * .1 });
       }
     }
     // A cool inner corona makes the warm outer peony read as volume, not confetti.
@@ -103,7 +104,7 @@ export class ParticleEngine {
     for (let i = 0; i < innerCount; i++) {
       const a = i / innerCount * TAU - rotation;
       const speed = random(70, 122) * scale;
-      this.spawn(x, y, Math.cos(a) * speed, Math.sin(a) * speed, { color: variant === 2 ? 4 : 3, life: random(1.5, 2.3), size: random(2.5, 4) * scale, drag: .57 });
+      this.spawn(x, y, Math.cos(a) * speed, Math.sin(a) * speed, { color: variant === 2 ? 4 : 3, life: random(1.5, 2.3), size: random(3, 4.8) * scale, drag: .57 });
     }
     for (let i = 0; i < (this.lightMotion ? 12 : 36); i++) {
       const a = random(0, TAU), speed = random(30, 170) * scale;
@@ -128,10 +129,11 @@ export class ParticleEngine {
       if (Math.random() < .8) this.spawn(r.x, r.y, (oldX - r.x) * 7 + random(-8, 8), random(12, 45), { color: 1, life: random(.20, .46), size: random(1.7, 3), kind: 2, drag: 1.4 });
       if (t >= 1) { this.burst(r.tx, r.ty, r.scale, r.variant); this.rockets.splice(i, 1); }
     }
-    this.rainAccumulator += dt * this.rainStrength * (this.lightMotion ? 45 : 115) * Math.min(this.width / 700, 1.25);
+    this.rainAccumulator += dt * this.rainStrength * (this.lightMotion ? 45 : 115) * clamp(this.width / 420, .8, 1.25);
     while (this.rainAccumulator >= 1) {
       this.rainAccumulator--;
-      this.spawn(random(-40, this.width + 10), -15, random(12, 28), random(150, 270), { kind: 0, life: random(2.6, 4), color: 4, size: random(.6, 1.3), drag: 0 });
+      const speed = random(280, 430);
+      this.spawn(random(-35, this.width + 10), -35, random(15, 32), speed, { kind: 0, life: this.height / speed + .6, color: 4, size: random(1.1, 1.9), drag: 0 });
     }
     for (let i = 0; i < this.count; i++) {
       this.life[i] -= dt;
@@ -162,7 +164,7 @@ export class ParticleEngine {
   }
   draw(head) {
     const ctx = this.ctx, w = this.width, h = this.height;
-    ctx.clearRect(0, 0, w, h); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.clearRect(0, 0, w, h); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.lineCap = 'round';
     if (this.preview) {
       for (const star of this.stars) {
         ctx.fillStyle = `rgba(219,220,218,${.13 + .14 * Math.sin(this.time * .55 + star.phase) ** 2})`;
@@ -175,7 +177,7 @@ export class ParticleEngine {
       const progress = flash.life / .45;
       const radius = flash.radius * (.6 + progress * .8);
       const glow = ctx.createRadialGradient(flash.x, flash.y, 0, flash.x, flash.y, radius);
-      glow.addColorStop(0, `rgba(255,234,201,${.12 * (1 - progress) ** 2})`);
+      glow.addColorStop(0, `rgba(255,234,201,${.20 * (1 - progress) ** 2})`);
       glow.addColorStop(1, 'rgba(255,220,180,0)'); ctx.fillStyle = glow;
       ctx.fillRect(flash.x - radius, flash.y - radius, radius * 2, radius * 2);
     }
@@ -189,21 +191,22 @@ export class ParticleEngine {
         ctx.moveTo(this.trailX[base+a],this.trailY[base+a]);
         ctx.lineTo(this.trailX[base+b],this.trailY[base+b]);
       }
-      ctx.strokeStyle = `rgba(${this.rgbs[color]},${(.055+j/this.trailLength*.40).toFixed(3)})`;
-      ctx.lineWidth = .65; ctx.stroke();
+      ctx.strokeStyle = `rgba(${this.rgbs[color]},${(.08+j/this.trailLength*.58).toFixed(3)})`;
+      ctx.lineWidth = 1.0; ctx.stroke();
     }
     ctx.beginPath();
     for (let i = 0; i < this.count; i++) if (this.kind[i] === 0) {
-      ctx.moveTo(this.x[i] - 1.2, this.y[i] - 10 * this.size[i]); ctx.lineTo(this.x[i], this.y[i]);
+      ctx.moveTo(this.x[i] - this.vx[i] * .075, this.y[i] - 22 * this.size[i]); ctx.lineTo(this.x[i], this.y[i]);
     }
     const rainRGB = hexRGB(this.palette.rain);
-    ctx.strokeStyle = `rgba(${rainRGB},.34)`; ctx.lineWidth = .75; ctx.stroke();
+    ctx.strokeStyle = `rgba(${rainRGB},.12)`; ctx.lineWidth = 4; ctx.stroke();
+    ctx.strokeStyle = `rgba(${rainRGB},.74)`; ctx.lineWidth = 1.35; ctx.stroke();
     for (let i = 0; i < this.count; i++) if (this.kind[i] !== 0) {
       const age = 1 - this.life[i] / this.total[i];
       const twinkle = this.kind[i] === 2 ? .55 + .45 * Math.sin(this.time * 20 + this.phase[i]) ** 2 : .8 + .2 * Math.sin(this.time * 9 + this.phase[i]);
       ctx.globalAlpha = Math.min(1, (1 - age) * 2.3) * twinkle;
       const size = this.size[i] * (1 - age * .35);
-      ctx.drawImage(this.sprites[this.color[i]], this.x[i] - size * 2.4, this.y[i] - size * 2.4, size * 4.8, size * 4.8);
+      ctx.drawImage(this.sprites[this.color[i]], this.x[i] - size * 3, this.y[i] - size * 3, size * 6, size * 6);
       if (i % 13 === 0 && age < .8) {
         ctx.beginPath(); ctx.moveTo(this.x[i] - size * 1.5, this.y[i]); ctx.lineTo(this.x[i] + size * 1.5, this.y[i]);
         ctx.moveTo(this.x[i], this.y[i] - size * 2); ctx.lineTo(this.x[i], this.y[i] + size * 2);

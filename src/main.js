@@ -1,4 +1,4 @@
-import { ParticleEngine, PALETTES } from './particles.js';
+import { ParticleEngine, PALETTES } from './particles.js?v=portrait-2';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
@@ -34,7 +34,7 @@ function previewState(errorText = '') {
   $('stop-camera').hidden = true; $('preview-actions').hidden = false;
   $('camera-disclosure').innerHTML = '仅使用摄像头 · 无需麦克风 · 画面不上传<span>当前为艺术预演，尚未开启摄像头</span>';
   $('control-description').textContent = '准备好，点亮你的第一场星焰。';
-  setExpression('✧', '先看一场星焰', '开启镜头，让下一场由你点亮');
+  setExpression('✧', '先看一场星焰', '拖动轮廓接星光，或开启镜头');
   nextAuto = performance.now() + 5500; banner(errorText, !!errorText);
 }
 function setExpression(symbol, name, detail) {
@@ -111,6 +111,7 @@ $('sensitivity').addEventListener('input', e => {
 });
 function moveGhost(event) {
   if (mode !== 'preview') return;
+  if (event.target.closest('button, input, a, summary')) return;
   const rect = stage.getBoundingClientRect();
   ghost = { x: clamp((event.clientX - rect.left) / rect.width, .18, .82), y: clamp((event.clientY - rect.top) / rect.height, .34, .68) };
 }
@@ -133,7 +134,7 @@ function frame(now) {
   const elapsed = Math.max(.001, (now - lastFrame) / 1000);
   const dt = Math.min(elapsed, .034); lastFrame = now;
   if (mode === 'preview') {
-    const base = Math.min(engine.width * .115, engine.height * .12);
+    const base = Math.min(engine.width * .19, engine.height * .115);
     targetHead = { x: ghost.x * engine.width, y: ghost.y * engine.height, rx: base, ry: base * 1.38, angle: Math.sin(now * .0004) * .025 };
     engine.rainStrength = previewRain ? .65 : 0;
     if (now >= nextAuto && !engine.lightMotion) { engine.celebrate(currentHead || targetHead); nextAuto = now + 6400; }
