@@ -1,8 +1,8 @@
-import { ParticleEngine, PALETTES } from './particles.js?v=center-8';
+import { ParticleEngine, PALETTES } from './particles.js?v=physics-9';
 import { CameraTracker } from './tracking.js';
 import { ExpressionState } from './expression.js';
 import { clamp, headEllipse } from './geometry.js';
-import { createLiveRoom } from './live-room.js?v=center-8';
+import { createLiveRoom } from './live-room.js?v=physics-9';
 
 // A fresh visit or refresh starts at the centered preview; explicit anchors still work.
 if (!location.hash) {
@@ -148,7 +148,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   if (paused || liveRoom.closed) { lastFrame = now; return; }
   const elapsed = Math.max(.001, (now - lastFrame) / 1000);
-  const dt = Math.min(elapsed, .034); lastFrame = now;
+  const dt = Math.min(elapsed, .1); lastFrame = now;
   if (mode === 'preview') {
     const base = Math.min(engine.width * .19, engine.height * .115);
     targetHead = { x: ghost.x * engine.width, y: ghost.y * engine.height, rx: base, ry: base * 1.38, angle: Math.sin(now * .0004) * .025 };
