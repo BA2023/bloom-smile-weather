@@ -1,7 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { projectLandmark, collideEllipse, headEllipse } from '../src/geometry.js';
+import { projectLandmark, collideEllipse, headEllipse, previewHeadMotion } from '../src/geometry.js';
 import { ExpressionState } from '../src/expression.js';
+test('preview head idles around center, follows a pointer, and respects reduced motion', () => {
+  const start = previewHeadMotion(360, 640, 0);
+  assert.equal(start.x, 180); assert.equal(start.y, 317.2); assert.equal(start.angle, 0);
+  const peak = previewHeadMotion(360, 640, Math.PI / 4.4);
+  assert.ok(Math.abs(peak.x - 212) < 1e-9); assert.ok(Math.abs(peak.angle - .09) < 1e-9);
+  assert.deepEqual(previewHeadMotion(360, 640, 1, { x: .8, y: .4, angle: .2 }), { x: 288, y: 256, angle: .2 });
+  assert.deepEqual(previewHeadMotion(360, 640, 1, null, true), { x: 180, y: 307.2, angle: 0 });
+});
 test('cover crop and mirrored landmarks agree with video display', () => {
   assert.deepEqual(projectLandmark({ x: .25, y: .5 }, 1280, 720, 640, 360), { x: 480, y: 180 });
   assert.deepEqual(projectLandmark({ x: .5, y: .5 }, 1280, 720, 300, 500), { x: 150, y: 250 });
