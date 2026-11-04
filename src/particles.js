@@ -1,11 +1,13 @@
 import { clamp, collideEllipse } from './geometry.js';
-import { motionCoefficients, advanceAxis, solveLaunchToApex, sphereDirection, burnIntensity, projectSpark } from './firework-physics.js';
-export { projectSpark } from './firework-physics.js';
+import { RAIN_COLORS, rainColorIndex } from './rain-colors.js?v=blue-cyan-rain-89';
+import { GeminiHeadCollider } from './gemini-collider.js?v=gemini-complete-35';
+import { motionCoefficients, advanceAxis, solveTimedLaunch, sphereDirection, burnIntensity, projectSpark } from './firework-physics.js?v=responsive-live-15';
+export { projectSpark } from './firework-physics.js?v=responsive-live-15';
 
 export const PALETTES = {
-  gold: { name: '鎏金', colors: ['#fff1cb', '#edc78c', '#d39454', '#f0b3a4', '#b6d0d3'], rain: '#d2d9eb' },
-  rose: { name: '绯樱', colors: ['#fff0e8', '#f4b2c8', '#d77cad', '#c5b8f0', '#efccad'], rain: '#e7c2e3' },
-  aurora: { name: '极光', colors: ['#e5fff2', '#a2e7cb', '#77bfc5', '#aaa1ec', '#d7c6f2'], rain: '#aadce3' }
+  gold: { name: '鎏金', colors: ['#fff1cb', '#edc78c', '#d39454', '#f0b3a4', '#b6d0d3'], rain: '#64ceff' },
+  rose: { name: '绯樱', colors: ['#fff0e8', '#f4b2c8', '#d77cad', '#c5b8f0', '#efccad'], rain: '#ee83c0' },
+  aurora: { name: '极光', colors: ['#e5fff2', '#a2e7cb', '#77bfc5', '#aaa1ec', '#d7c6f2'], rain: '#4dd7e2' }
 };
 const hexRGB = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
 const random = (a, b) => a + Math.random() * (b - a);
@@ -24,8 +26,11 @@ export class ParticleEngine {
     this.trailY = new Float32Array(this.capacity * this.trailLength);
     this.drawMask = new Uint8Array(5);
     this.time = 0; this.rockets = []; this.flashes = []; this.impacts = []; this.events = [];
-    this.collisions = 0; this.rainAccumulator = 0; this.rainStrength = 0; this.lightMotion = false;
-    this.width = 1; this.height = 1; this.preview = true; this.debug = false;
+    this.celebrations = []; this.nextCelebration = 0; this.celebrationIndex = 0;
+    this.collisions = 0; this.rainAccumulator = 0; this.rainStrength = 0; this.lightMotion = false; this.rainColorCursor = 0;
+    this.width = 1; this.height = 1; this.preview = true; this.particleScale = 1.25; this.naturalRain = true; this.showColliderMesh = true;
+    // Rendering adapter only; simulation continues to use the supplied head ellipse.
+    this.previewAvatar = new GeminiHeadCollider();
     this.stars = Array.from({ length: 55 }, () => ({ x: Math.random(), y: Math.random(), phase: random(0, TAU), r: random(.35, 1.1) }));
     this.camera = { x: 180, y: 250, focal: 700, near: 110 }; this.gravity = 105;
     this.setPalette('gold');
@@ -33,6 +38,8 @@ export class ParticleEngine {
   setPalette(name) {
     this.palette = PALETTES[name]; this.paletteKey = name;
     this.rgbs = this.palette.colors.map(hexRGB);
+    this.rainColors = RAIN_COLORS[name] || RAIN_COLORS.gold;
+    this.rainRGBs = this.rainColors.map(hexRGB);
     this.sprites = this.rgbs.map(rgb => {
       const sprite = document.createElement('canvas'); sprite.width = sprite.height = 64;
       const ctx = sprite.getContext('2d');
@@ -53,7 +60,13 @@ export class ParticleEngine {
     const emberCtx = this.emberSprite.getContext('2d'), emberGlow = emberCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
     emberGlow.addColorStop(0, 'rgba(255,190,100,.9)'); emberGlow.addColorStop(.12, 'rgba(242,135,44,.5)'); emberGlow.addColorStop(.45, 'rgba(200,84,22,.08)'); emberGlow.addColorStop(1, 'rgba(180,65,10,0)');
     emberCtx.fillStyle = emberGlow; emberCtx.fillRect(0, 0, 64, 64);
-    this.dropSprites = [this.palette.rain, this.palette.colors[3], this.palette.colors[0]].map(color => {
+    this.rainGlows = this.rainRGBs.map(rgb => {
+      const sprite = document.createElement('canvas'); sprite.width = sprite.height = 64;
+      const ctx = sprite.getContext('2d'), glow = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      glow.addColorStop(0, `rgba(${rgb},.95)`); glow.addColorStop(.2, `rgba(${rgb},.48)`); glow.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, 64, 64); return sprite;
+    });
+    this.dropSprites = this.rainColors.map(color => {
       const sprite = document.createElement('canvas'); sprite.width = 48; sprite.height = 128;
       const ctx = sprite.getContext('2d'), rgb = hexRGB(color);
       const glow = ctx.createRadialGradient(24, 92, 0, 24, 92, 23);
@@ -65,6 +78,19 @@ export class ParticleEngine {
       ctx.bezierCurveTo(22, 60, 15, 89, 21, 105); ctx.quadraticCurveTo(29, 117, 29, 100); ctx.quadraticCurveTo(26, 48, 24, 3); ctx.fill();
       return sprite;
     });
+  }
+  get rainScale() { return 1 + (this.particleScale - 1) * 3; }
+  get fireworksActive() {
+    if (this.celebrations.length || this.rockets.length || this.events.length || this.flybys.length) return true;
+    for (let i = 0; i < this.count; i++) if (this.kind[i] !== 0) return true;
+    return false;
+  }
+  clear() {
+    this.celebrations.length = this.events.length = this.rockets.length = this.flybys.length = this.flashes.length = this.ripples.length = this.impacts.length = 0;
+    this.count = 0; this.rainStrength = this.rainEnvelope = this.rainAccumulator = 0;
+    this.nextCelebration = this.time;
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.frontCtx?.clearRect(0, 0, this.frontWidth, this.frontHeight);
   }
   resize(width, height) {
     const sx = width / this.width, sy = height / this.height;
@@ -112,30 +138,63 @@ export class ParticleEngine {
     return i;
   }
   celebrate(head, strength = 1) {
-    if (this.rockets.length || this.events.length > 2) return false;
-    const w = this.width, h = this.height;
-    const cx = clamp(head?.x ?? w * .52, w * .27, w * .73);
-    const cy = clamp(head ? head.y - head.ry - h * .12 : h * .28, h * .22, h * .42);
-    const spread = Math.min(w * .22, 145);
-    this.launch(cx, cy, 1.12 * strength, 0);
-    if (!this.lightMotion) {
-      this.events.push({ at: this.time + .32, x: clamp(cx - spread, 60, w - 60), y: cy + h * .10, scale: .74 * strength, variant: 1 });
-      this.events.push({ at: this.time + .57, x: clamp(cx + spread, 60, w - 60), y: cy + h * .06, scale: .84 * strength, variant: 2 });
+    const request = { x: (head?.x ?? this.width * .5) / this.width,
+      y: head ? (head.y - head.ry - this.height * .12) / this.height : .28, strength };
+    if (this.celebrations.length < 10) this.celebrations.push(request);
+    else {
+      const last = this.celebrations[this.celebrations.length - 1];
+      last.strength = Math.min(1.3, last.strength + .035); last.x = request.x; last.y = request.y;
     }
+    this.drainCelebrations();
     return true;
   }
+  drainCelebrations() {
+    if (!this.celebrations.length || this.time + 1e-9 < this.nextCelebration || this.rockets.length >= 5) return;
+    const request = this.celebrations.shift(), index = this.celebrationIndex++;
+    const w = this.width, h = this.height;
+    const spreadX = index === 0 ? 0 : Math.sin(index * 2.3999632297) * w * .19;
+    const cx = clamp(request.x * w + spreadX, w * .22, w * .78);
+    const cy = clamp(request.y * h + Math.sin(index * 1.7) * h * .07, h * .20, h * .42);
+    const spread = Math.min(w * .22, 145);
+    this.launch(cx, cy, 1.12 * request.strength, index % 3);
+    if (this.flashes.length >= 8) this.flashes.shift();
+    this.flashes.push({ x: cx, y: cy, life: 0, radius: 26 });
+    if (!this.lightMotion && !this.celebrations.length && this.rockets.length === 1 && this.events.length === 0 && this.count < this.limit * .45) {
+      this.events.push({ at: this.time + .16, x: clamp(cx - spread, 50, w - 50), y: cy + h * .10, scale: .74 * request.strength, variant: 1 });
+      this.events.push({ at: this.time + .32, x: clamp(cx + spread, 50, w - 50), y: cy + h * .06, scale: .84 * request.strength, variant: 2 });
+    }
+    this.nextCelebration = this.time + (this.lightMotion ? .32 : .18);
+  }
   launch(x, y, scale, variant) {
-    if (this.rockets.length > 4) return;
+    if (this.rockets.length >= 6) return;
     const x0 = x + (variant % 2 ? -1 : 1) * Math.min(this.width * .17, 100), y0 = this.height + 12;
     const drag = 2.6, wind = 3 * Math.sin(this.time * .35);
-    const shot = solveLaunchToApex(Math.max(1, y0 - y), x - x0, this.gravity, drag, wind);
+    const shot = solveTimedLaunch(Math.max(1, y0 - y), x - x0, .34 + variant * .035, drag, wind);
     this.rockets.push({ x0, y0, x: x0, y: y0, vx: shot.vx, vy: shot.vy,
       initialVx: shot.vx, initialVy: shot.vy, tx: x, ty: y, life: 0, duration: shot.duration,
-      scale, variant, drag, wind, gravity: this.gravity, emission: 0 });
+      scale, variant, drag, wind, gravity: shot.gravity, emission: 0 });
+  }
+  removeParticle(i) {
+    this.count--;
+    for (const key of fields) this[key][i] = this[key][this.count];
+    this.trailX.copyWithin(i * this.trailLength, this.count * this.trailLength, (this.count + 1) * this.trailLength);
+    this.trailY.copyWithin(i * this.trailLength, this.count * this.trailLength, (this.count + 1) * this.trailLength);
+  }
+  reserveBurstSpace() {
+    const capacity = Math.min(this.limit, this.capacity), target = Math.min(capacity, this.lightMotion ? 32 : 96);
+    const remove = Math.max(0, target - (capacity - this.count));
+    if (!remove) return;
+    const score = i => this.life[i] / this.total[i] + (this.kind[i] === 1 ? 1 : this.kind[i] === 0 ? .3 : 0);
+    const candidates = Array.from({ length: this.count }, (_, i) => i).sort((a, b) => score(a) - score(b));
+    candidates.slice(0, remove).sort((a, b) => b - a).forEach(i => this.removeParticle(i));
   }
   burst(x, y, scale, variant = 0) {
+    this.reserveBurstSpace();
     scale *= clamp(Math.min(this.width / 480, this.height / 760), .72, 1.28) * (this.lightMotion ? .78 : 1);
-    const count = this.lightMotion ? 56 : Math.round((this.limit <= 850 ? 140 : 180) * clamp(this.limit / 850, .55, 1));
+    const available = Math.min(this.limit, this.capacity) - this.count;
+    const innerCount = Math.min(this.lightMotion ? 14 : 28, Math.floor(available * .16));
+    const desired = this.lightMotion ? 56 : Math.round((this.limit <= 850 ? 140 : 180) * clamp(this.limit / 850, .55, 1));
+    const count = Math.min(desired, available - innerCount);
     const rotation = random(0, TAU), outerColor = variant === 2 ? 3 : 1;
     for (let i = 0; i < count; i++) {
       const d = sphereDirection(i, count, rotation), speed = random(230, 285) * scale;
@@ -145,15 +204,16 @@ export class ParticleEngine {
         life: streamer ? random(2.9, 3.5) : random(2.15, 2.95), size: random(1.2, 1.9) * Math.max(.8, scale),
         drag: streamer ? .62 : random(.78, 1.05), emit: !this.lightMotion && i % 5 === 0 });
     }
-    const innerCount = this.lightMotion ? 14 : Math.round(28 * clamp(this.limit / 850, .6, 1));
     for (let i = 0; i < innerCount; i++) {
       const d = sphereDirection(i, innerCount, -rotation), speed = random(75, 120) * scale;
       this.spawn(x, y, d.x * speed, d.y * speed, { color: variant === 2 ? 4 : 3,
         life: random(1.65, 2.35), size: random(.8, 1.2), drag: 1.1 });
     }
+    if (this.flashes.length >= 8) this.flashes.shift();
     this.flashes.push({ x, y, life: 0, radius: 95 * scale });
     if (this.foreground && !this.lightMotion) {
       const frontCount = variant === 0 ? 16 : 8, frontRotation = random(0, TAU);
+      this.flybys.splice(0, Math.max(0, this.flybys.length + frontCount - 48));
       for (let i = 0; i < frontCount && this.flybys.length < 48; i++) {
         const zDirection = .96 + .035 * (i + .5) / frontCount;
         const lateral = Math.sqrt(1 - zDirection * zDirection), angle = i * 2.3999632297 + frontRotation;
@@ -177,6 +237,7 @@ export class ParticleEngine {
   }
   step(dt, head) {
     this.time += dt; this.tick++;
+    this.drainCelebrations();
     const recordTrail = this.tick % 2 === 0;
     if (recordTrail) this.trailHead = (this.trailHead + 1) % this.trailLength;
     this.rainEnvelope += (this.rainStrength - this.rainEnvelope) * (1 - Math.exp(-dt * 3));
@@ -187,7 +248,7 @@ export class ParticleEngine {
     for (let i = this.ripples.length - 1; i >= 0; i--) {
       this.ripples[i].age += dt; if (this.ripples[i].age > 1.05) this.ripples.splice(i, 1);
     }
-    for (let i = this.events.length - 1; i >= 0; i--) if (this.time >= this.events[i].at) {
+    for (let i = this.events.length - 1; i >= 0; i--) if (this.time >= this.events[i].at && this.rockets.length < 6) {
       const e = this.events.splice(i, 1)[0]; this.launch(e.x, e.y, e.scale, e.variant);
     }
     for (let i = this.rockets.length - 1; i >= 0; i--) {
@@ -212,21 +273,21 @@ export class ParticleEngine {
     while (this.rainAccumulator >= 1) {
       this.rainAccumulator--;
       const depth = this.lightMotion ? 1 : Math.random() < .16 ? 2 : Math.random() < .35 ? 0 : 1;
-      const speed = depth === 2 ? random(560, 740) : depth === 1 ? random(340, 480) : random(170, 260);
-      this.spawn(random(-40, this.width + 5), -90, random(22, 42), speed, { kind: 0,
-        life: this.height / speed + 1, color: 4, size: depth === 2 ? random(2.7, 4.2) : depth === 1 ? random(1.1, 1.8) : random(.5, .9), depth, drag: 0 });
+      const speed = this.naturalRain ? (depth === 2 ? random(560, 650) : depth === 1 ? random(400, 470) : random(270, 330)) :
+        depth === 2 ? random(560, 740) : depth === 1 ? random(340, 480) : random(170, 260);
+      const drift = this.naturalRain ? speed * (.04 + Math.sin(this.time * .3) * .006) : random(22, 42);
+      this.spawn(random(-40, this.width + 5), -90, drift, speed, { kind: 0,
+        life: this.height / speed + 1, color: rainColorIndex(this.rainColorCursor++), size: depth === 2 ? random(2.7, 4.2) : depth === 1 ? random(1.1, 1.8) : random(.5, .9), depth, drag: 0 });
     }
     const wind = Math.sin(this.time * .42) * 4;
     for (let i = 0; i < this.count; i++) {
       this.life[i] -= dt;
       if (this.kind[i] === 0 && this.y[i] >= this.height * (.70 + Math.sin(this.phase[i]) * .045)) {
-        if (this.ripples.length < (this.lightMotion ? 10 : 30) && this.depth[i] > 0 && Math.random() < .65) this.ripples.push({ x: this.x[i], y: this.y[i], age: 0, size: this.size[i], color: i % 3 });
+        if (this.ripples.length < (this.lightMotion ? 10 : 30) && this.depth[i] > 0 && Math.random() < .65) this.ripples.push({ x: this.x[i], y: this.y[i], age: 0, size: this.size[i], color: this.color[i] });
         this.life[i] = 0;
       }
       if (this.life[i] <= 0 || this.y[i] > this.height + 80 || this.x[i] < -100 || this.x[i] > this.width + 100) {
-        this.count--; for (const key of fields) this[key][i] = this[key][this.count];
-        this.trailX.copyWithin(i * this.trailLength, this.count * this.trailLength, (this.count + 1) * this.trailLength);
-        this.trailY.copyWithin(i * this.trailLength, this.count * this.trailLength, (this.count + 1) * this.trailLength);
+        this.removeParticle(i);
         i--; continue;
       }
       this.px[i] = this.x[i]; this.py[i] = this.y[i];
@@ -289,7 +350,7 @@ export class ParticleEngine {
     for (let i = 0; i < this.count; i++) if (this.kind[i] !== 0) {
       const age = this.total[i] - this.life[i], intensity = burnIntensity(age, this.total[i]);
       const flicker = .84 + .16 * Math.sin(this.time * 23 + this.phase[i]) ** 2, band = this.heat[i];
-      const size = Math.max(.5, this.size[i] * (1 - age / this.total[i] * .25));
+      const size = Math.max(.5, this.size[i] * (1 - age / this.total[i] * .25)) * this.particleScale;
       if (this.kind[i] === 1 || i % 3 === 0) {
         ctx.globalAlpha = intensity * flicker * .60;
         ctx.drawImage(band < 4 ? this.sprites[this.color[i]] : this.emberSprite,
@@ -301,19 +362,18 @@ export class ParticleEngine {
     }
     ctx.globalAlpha = 1;
     for (const r of this.rockets) {
-      ctx.beginPath(); ctx.moveTo(r.x - r.vx * .055, r.y - r.vy * .055); ctx.lineTo(r.x, r.y);
-      ctx.strokeStyle = 'rgba(255,204,135,.75)'; ctx.lineWidth = 1.8; ctx.stroke();
-      ctx.drawImage(this.sprites[0], r.x - 5, r.y - 5, 10, 10);
+      const tail = Math.min(.055, 85 / Math.max(1, Math.hypot(r.vx, r.vy)));
+      ctx.beginPath(); ctx.moveTo(r.x - r.vx * tail, r.y - r.vy * tail); ctx.lineTo(r.x, r.y);
+      ctx.strokeStyle = 'rgba(255,204,135,.75)'; ctx.lineWidth = 1.8 * this.particleScale; ctx.stroke();
+      const glow = 5 * this.particleScale;
+      ctx.drawImage(this.sprites[0], r.x - glow, r.y - glow, glow * 2, glow * 2);
     }
     for (const hit of this.impacts) {
       const t = hit.life / .25; ctx.beginPath(); ctx.arc(hit.x, hit.y, 1 + t * 7, 0, TAU);
       ctx.strokeStyle = `rgba(${this.rgbs[0]},${(1 - t) * .22})`; ctx.lineWidth = .7; ctx.stroke();
     }
     ctx.globalCompositeOperation = 'source-over';
-    if (head && this.debug) {
-      ctx.save(); ctx.translate(head.x, head.y); ctx.rotate(head.angle || 0); ctx.strokeStyle = '#a5dec4b0';
-      ctx.lineWidth = 1; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.ellipse(0, 0, head.rx, head.ry, 0, 0, TAU); ctx.stroke(); ctx.restore();
-    }
+    if (head && this.showColliderMesh && !this.preview) this.drawAvatar(head, false);
     this.drawForeground();
   }
   drawFireworkTrails() {
@@ -337,10 +397,10 @@ export class ParticleEngine {
         }
         const alpha = brightness * [.10, .35, .95][section];
         if (section === 2 && !this.lightMotion && this.limit > 450) {
-          ctx.strokeStyle = `rgba(${this.heatColors[color][band]},${alpha * .16})`; ctx.lineWidth = 4.4; ctx.stroke();
+          ctx.strokeStyle = `rgba(${this.heatColors[color][band]},${alpha * .16})`; ctx.lineWidth = 4.4 * this.particleScale; ctx.stroke();
         }
-        ctx.strokeStyle = `rgba(${this.heatColors[color][band]},${alpha})`; ctx.lineWidth = [.8, 1.45, 2.2][section]; ctx.stroke();
-        if (section === 2) { ctx.strokeStyle = band < 4 ? `rgba(255,242,205,${alpha * .7})` : `rgba(255,165,70,${alpha * .45})`; ctx.lineWidth = .75; ctx.stroke(); }
+        ctx.strokeStyle = `rgba(${this.heatColors[color][band]},${alpha})`; ctx.lineWidth = [.8, 1.45, 2.2][section] * this.particleScale; ctx.stroke();
+        if (section === 2) { ctx.strokeStyle = band < 4 ? `rgba(255,242,205,${alpha * .7})` : `rgba(255,165,70,${alpha * .45})`; ctx.lineWidth = .75 * this.particleScale; ctx.stroke(); }
       }
     }
     for (let band = 0; band < 8; band++) {
@@ -349,12 +409,13 @@ export class ParticleEngine {
       for (let i = 0; i < this.count; i++) if (this.kind[i] === 2 && this.heat[i] === band) {
         ctx.moveTo(this.x[i] - this.vx[i] * .04, this.y[i] - this.vy[i] * .04); ctx.lineTo(this.x[i], this.y[i]);
       }
-      ctx.strokeStyle = `rgba(255,175,85,${Math.pow(1 - (band + .5) / 8, .62) * .72})`; ctx.lineWidth = 1.1; ctx.stroke();
+      ctx.strokeStyle = `rgba(255,175,85,${Math.pow(1 - (band + .5) / 8, .62) * .72})`; ctx.lineWidth = 1.1 * this.particleScale; ctx.stroke();
     }
   }
   drawRain() {
     const ctx = this.ctx, w = this.width, h = this.height, amount = this.rainEnvelope;
     const rgb = hexRGB(this.palette.rain);
+    const rainRGBs = this.rainRGBs || [rgb];
     if (amount > .005) {
       const mist = ctx.createRadialGradient(w * .55, h * .24, 0, w * .55, h * .24, w * .85);
       mist.addColorStop(0, `rgba(${rgb},${amount * .10})`); mist.addColorStop(.6, `rgba(${this.rgbs[3]},${amount * .045})`); mist.addColorStop(1, `rgba(${rgb},0)`);
@@ -364,26 +425,42 @@ export class ParticleEngine {
       pool.addColorStop(0, `rgba(${this.rgbs[3]},${amount * .15})`); pool.addColorStop(.55, `rgba(${rgb},${amount * .07})`); pool.addColorStop(1, `rgba(${rgb},0)`);
       ctx.fillStyle = pool; ctx.fillRect(-w, -w, w * 2, w * 2); ctx.restore();
     }
-    for (let depth = 0; depth < 2; depth++) {
-      ctx.beginPath();
-      for (let i = 0; i < this.count; i++) if (this.kind[i] === 0 && this.depth[i] === depth) {
-        ctx.moveTo(this.x[i] - this.vx[i] * .09, this.y[i] - 28 * this.size[i]); ctx.lineTo(this.x[i], this.y[i]);
+    if (this.naturalRain) {
+      // Keep a continuous rain streak, with a small head and no comet sprite.
+      // Width follows the size choice; shutter length grows only slightly.
+      for (let color = 0; color < rainRGBs.length; color++) for (let depth = 0; depth < 3; depth++) {
+        ctx.beginPath();
+        for (let i = 0; i < this.count; i++) if (this.kind[i] === 0 && this.depth[i] === depth && (this.color?.[i] ?? 0) === color) {
+          const speed = Math.max(1, Math.hypot(this.vx[i], this.vy[i]));
+          const length = clamp(speed * .07, 16, 55) * (1 + (this.rainScale - 1) * .2);
+          ctx.moveTo(this.x[i] - this.vx[i] / speed * length, this.y[i] - this.vy[i] / speed * length);
+          ctx.lineTo(this.x[i], this.y[i]);
+        }
+        ctx.strokeStyle = `rgba(${rainRGBs[color]},${[.30, .72, .80][depth]})`;
+        ctx.lineWidth = [.6, 1.2, 2][depth] * this.rainScale; ctx.stroke();
       }
-      ctx.strokeStyle = `rgba(${rgb},${depth ? .16 : .19})`; ctx.lineWidth = depth ? 4 : .7; ctx.stroke();
-      if (depth) { ctx.strokeStyle = `rgba(${rgb},.77)`; ctx.lineWidth = 1.2; ctx.stroke(); }
-    }
-    for (let i = 0; i < this.count; i++) if (this.kind[i] === 0 && this.depth[i] === 2) {
-      const size = this.size[i]; ctx.save(); ctx.translate(this.x[i], this.y[i]); ctx.rotate(-.065);
-      ctx.globalAlpha = .80;
-      ctx.drawImage(this.dropSprites[i % 3], -size * 3, -size * 23, size * 6, size * 25);
-      ctx.restore();
+    } else {
+      for (let color = 0; color < rainRGBs.length; color++) for (let depth = 0; depth < 2; depth++) {
+        ctx.beginPath();
+        for (let i = 0; i < this.count; i++) if (this.kind[i] === 0 && this.depth[i] === depth && this.color[i] === color) {
+          ctx.moveTo(this.x[i] - this.vx[i] * .09 * this.rainScale, this.y[i] - 28 * this.size[i] * this.rainScale); ctx.lineTo(this.x[i], this.y[i]);
+        }
+        ctx.strokeStyle = `rgba(${rainRGBs[color]},${depth ? .16 : .26})`; ctx.lineWidth = (depth ? 4 : .7) * this.rainScale; ctx.stroke();
+        if (depth) { ctx.strokeStyle = `rgba(${rainRGBs[color]},.86)`; ctx.lineWidth = 1.2 * this.rainScale; ctx.stroke(); }
+      }
+      for (let i = 0; i < this.count; i++) if (this.kind[i] === 0 && this.depth[i] === 2) {
+        const size = this.size[i] * this.rainScale; ctx.save(); ctx.translate(this.x[i], this.y[i]); ctx.rotate(-.065);
+        ctx.globalAlpha = .80;
+        ctx.drawImage(this.dropSprites[this.color[i]], -size * 3, -size * 23, size * 6, size * 25);
+        ctx.restore();
+      }
     }
     for (const ripple of this.ripples) {
-      const t = ripple.age / 1.05, radius = (5 + t * 28) * Math.min(ripple.size, 2);
-      ctx.strokeStyle = `rgba(${ripple.color ? this.rgbs[3] : rgb},${(1 - t) ** 1.5 * .55})`; ctx.lineWidth = .8;
+      const t = ripple.age / 1.05, radius = (5 + t * 28) * Math.min(ripple.size, 2) * 1.5;
+      ctx.strokeStyle = `rgba(${rainRGBs[ripple.color] || rgb},${(1 - t) ** 1.5 * .55})`; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.ellipse(ripple.x, ripple.y, radius, radius * .22, 0, 0, TAU); ctx.stroke();
       ctx.beginPath(); ctx.ellipse(ripple.x, ripple.y, radius * .65, radius * .14, 0, 0, TAU); ctx.stroke();
-      if (t < .25) { ctx.globalAlpha = (1 - t * 4) * .55; ctx.drawImage(this.sprites[ripple.color ? 3 : 4], ripple.x - 12, ripple.y - 12, 24, 24); ctx.globalAlpha = 1; }
+      if (t < .25) { ctx.globalAlpha = (1 - t * 4) * .55; ctx.drawImage(this.rainGlows[ripple.color], ripple.x - 18, ripple.y - 18, 36, 36); ctx.globalAlpha = 1; }
     }
   }
   drawForeground() {
@@ -401,35 +478,40 @@ export class ParticleEngine {
       const cap = Math.min(1, 90 / Math.max(1, length)); dx *= cap; dy *= cap;
       const band = Math.min(7, Math.floor(spark.age / spark.duration * 8));
       const intensity = burnIntensity(spark.age, spark.duration) * point.depthFade;
-      const width = Math.min(2.5, 1.1 + point.scale * .23), defocus = clamp((point.scale - 1) * 1.2, 0, 5);
+      const width = Math.min(2.5, 1.1 + point.scale * .23) * this.particleScale, defocus = clamp((point.scale - 1) * 1.2, 0, 5);
       // A tapered capsule and a small round hot core; never a cross/star sprite.
       ctx.beginPath(); ctx.moveTo(point.x - dx, point.y - dy); ctx.lineTo(point.x, point.y);
       ctx.globalAlpha = intensity * .14; ctx.strokeStyle = `rgb(${this.heatColors[spark.color][band]})`; ctx.lineWidth = width + 3 + defocus; ctx.stroke();
       ctx.globalAlpha = intensity * .95; ctx.lineWidth = width; ctx.stroke();
-      ctx.globalAlpha = intensity * .9; ctx.strokeStyle = '#fff2d4'; ctx.lineWidth = .65;
+      ctx.globalAlpha = intensity * .9; ctx.strokeStyle = '#fff2d4'; ctx.lineWidth = .65 * this.particleScale;
       ctx.beginPath(); ctx.moveTo(point.x - dx * .48, point.y - dy * .48); ctx.lineTo(point.x, point.y); ctx.stroke();
-      const glowSize = Math.min(14, 6 + defocus);
+      const glowSize = Math.min(14, 6 + defocus) * this.particleScale;
       ctx.globalAlpha = intensity * .20;
       ctx.drawImage(band < 4 ? this.sprites[spark.color] : this.emberSprite,
         point.x - glowSize, point.y - glowSize, glowSize * 2, glowSize * 2);
       ctx.globalAlpha = intensity * .9; ctx.fillStyle = '#fff1d3';
-      ctx.beginPath(); ctx.arc(point.x, point.y, Math.min(1.3, .6 + point.scale * .1), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(point.x, point.y, Math.min(1.3, .6 + point.scale * .1) * this.particleScale, 0, TAU); ctx.fill();
     }
     ctx.restore(); ctx.globalAlpha = 1;
   }
-  drawGhost(head) {
-    const ctx = this.ctx;
-    ctx.save(); ctx.translate(head.x, head.y); ctx.rotate(head.angle || 0);
-    const halo = ctx.createRadialGradient(-head.rx * .1, -head.ry * .2, 0, 0, 0, head.ry * 1.7);
-    halo.addColorStop(0, 'rgba(141,160,189,.07)'); halo.addColorStop(.65, 'rgba(80,105,155,.025)'); halo.addColorStop(1, 'rgba(80,100,130,0)');
-    ctx.fillStyle = halo; ctx.fillRect(-head.ry * 1.8, -head.ry * 1.8, head.ry * 3.6, head.ry * 3.6);
-    const line = ctx.createLinearGradient(-head.rx, -head.ry, head.rx, head.ry);
-    line.addColorStop(0, '#d4c09e66'); line.addColorStop(.40, '#b6bed235'); line.addColorStop(1, '#707c9a12');
-    ctx.strokeStyle = line; ctx.lineWidth = .8;
-    ctx.beginPath(); ctx.ellipse(0, 0, head.rx, head.ry, 0, 0, TAU); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, 0, head.rx * 1.12, head.ry * 1.07, -.14, Math.PI * .85, Math.PI * 1.75); ctx.strokeStyle = '#b8bec51a'; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-head.rx * .18, -head.ry * .05); ctx.lineTo(head.rx * .18, -head.ry * .05);
-    ctx.moveTo(0, -head.ry * .20); ctx.lineTo(0, head.ry * .10); ctx.strokeStyle = '#cecac329'; ctx.lineWidth = .6; ctx.stroke();
-    ctx.restore();
+  drawGhost(head) { this.drawAvatar(head, true); }
+  drawAvatar(head, synthetic) {
+    const avatar = this.previewAvatar, angle = head.angle || 0;
+    avatar.x = head.x; avatar.y = head.y; avatar.rx = head.rx; avatar.ry = head.ry; avatar.angle = angle;
+    const mood = (synthetic && this.previewMood) || (this.fireworksActive ? 'fireworks' : this.rainStrength > .03 || this.rainEnvelope > .06 ? 'rain' : 'neutral');
+    // Gemini's synthetic preview poses are presentation values, not tracking signals.
+    const smile = mood === 'fireworks' ? .78 : mood === 'rain' ? .44 : .08;
+    const jaw = mood === 'fireworks' ? .56 : mood === 'rain' ? .10 : .03;
+    const ca = Math.cos(angle), sa = Math.sin(angle);
+    const first = Math.max(0, this.impacts.length - avatar.impacts.length);
+    for (let i = 0; i < avatar.impacts.length; i++) {
+      const hit = this.impacts[first + i], arc = avatar.impacts[i];
+      arc.active = Boolean(hit && hit.life >= 0 && hit.life < .25);
+      if (!arc.active) continue;
+      const dx = hit.x - head.x, dy = hit.y - head.y;
+      arc.angle = Math.atan2((-dx * sa + dy * ca) / head.ry, (dx * ca + dy * sa) / head.rx);
+      arc.life = hit.life; arc.maxLife = .25; arc.color = '#FDE047';
+    }
+    avatar.renderColliderMesh(this.ctx, mood, this.showColliderMesh, synthetic, smile, jaw);
   }
 }

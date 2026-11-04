@@ -7,6 +7,7 @@ const sampleComments = [
 export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
   let closed = false, likes = 12800, commentIndex = 0, giftTimer, toastTimer;
   let openPanelElement = null, returnFocus = null;
+  let lastGift = '', lastSender = '', lastGiftAt = -Infinity, combo = 0;
   const formatLikes = n => `${(n / 1000).toFixed(1)}K`;
   function toast(message) {
     clearTimeout(toastTimer); $('room-toast').textContent = message; $('room-toast').hidden = false;
@@ -17,6 +18,7 @@ export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
     const author = document.createElement('strong'), body = document.createElement('span');
     badge.className = `comment-badge ${own ? 'own' : commentIndex % 2 ? 'blue' : 'violet'}`; badge.textContent = own ? '我' : String(7 + commentIndex % 5);
     author.textContent = name; body.textContent = message;
+    if (own) body.dataset.i18nIgnore = 'true';
     row.append(badge, author, body); $('room-comments').append(row);
     while ($('room-comments').children.length > 4) $('room-comments').firstElementChild.remove();
   }
@@ -24,20 +26,30 @@ export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
     if (!openPanelElement) return;
     openPanelElement.hidden = true; openPanelElement = null;
     $('gift-trigger').setAttribute('aria-expanded', 'false');
+    $('room-settings-trigger').setAttribute('aria-expanded', 'false');
     if (restore && returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
     returnFocus = null;
   }
   function openPanel(id, trigger) {
     closePanel(false); returnFocus = trigger; openPanelElement = $(id); openPanelElement.hidden = false;
     if (id === 'gift-panel') $('gift-trigger').setAttribute('aria-expanded', 'true');
+    if (id === 'room-settings-panel') $('room-settings-trigger').setAttribute('aria-expanded', 'true');
     if (id === 'share-panel') $('share-url').value = location.origin + location.pathname;
     openPanelElement.querySelector('section button')?.focus({ preventScroll: true });
   }
   function showGift(name, sender = '你', symbol = '✷') {
+    const now = performance.now();
+    combo = name === lastGift && sender === lastSender && now - lastGiftAt < 2200 ? combo + 1 : 1;
+    lastGift = name; lastSender = sender; lastGiftAt = now;
     clearTimeout(giftTimer); $('gift-sender').textContent = sender;
     $('gift-message').textContent = `送出${name}`; $('gift-notice-art').textContent = symbol;
     $('gift-notice').querySelector('.gift-sender-avatar').textContent = sender.slice(0, 1);
     $('gift-notice').hidden = false;
+    $('gift-combo').textContent = '×' + combo;
+    $('gift-repeat').hidden = sender !== '你' || name !== '流光烟花';
+    $('gift-notice').classList.toggle('combo-gift', sender === '你' && name === '流光烟花');
+    $('gift-repeat').setAttribute('aria-label', '再送一次流光烟花，当前连送' + combo + '次');
+    if (!reduceMotion()) $('gift-combo').animate?.([{ transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 160, easing: 'ease-out' });
     giftTimer = setTimeout(() => { $('gift-notice').hidden = true; }, 4400);
   }
   function heart() {
@@ -57,6 +69,8 @@ export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
     toast(follow ? '已关注 Bloom Studio（模拟）' : '已取消关注（模拟）');
   });
   $('gift-trigger').addEventListener('click', e => openPanel('gift-panel', e.currentTarget));
+  $('gift-repeat').addEventListener('click', () => $('preview-burst').click());
+  $('room-settings-trigger').addEventListener('click', e => openPanel('room-settings-panel', e.currentTarget));
   $('room-share').addEventListener('click', e => openPanel('share-panel', e.currentTarget));
   document.querySelectorAll('[data-close-panel]').forEach(el => el.addEventListener('click', () => closePanel()));
   document.querySelectorAll('[data-gift]').forEach(el => el.addEventListener('click', () => closePanel()));
@@ -76,8 +90,8 @@ export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
     try {
       await navigator.clipboard.writeText(field.value);
       $('mobile-copy-status').textContent = '链接已复制，可在手机浏览器打开。';
-      $('copy-mobile-link').textContent = '已复制 ✓';
-      setTimeout(() => { $('copy-mobile-link').textContent = '复制手机链接 ↗'; }, 2300);
+      $('copy-mobile-label').textContent = '已复制 ✓';
+      setTimeout(() => { $('copy-mobile-label').textContent = '复制手机链接'; }, 2300);
     } catch {
       field.focus(); field.select();
       $('mobile-copy-status').textContent = '链接已选中，请复制后在手机浏览器打开。';
@@ -94,17 +108,26 @@ export function createLiveRoom({ onLeave, onEnter, reduceMotion }) {
     if (!openPanelElement) return;
     if (e.key === 'Escape') { e.preventDefault(); closePanel(); }
     if (e.key === 'Tab') {
-      const focusable = [...openPanelElement.querySelectorAll('button, input, [tabindex="0"]')].filter(el => !el.disabled && !el.hidden);
+      const focusable = [...openPanelElement.querySelectorAll('button, input, summary, [tabindex="0"]')].filter(el => !el.disabled && !el.hidden && el.getClientRects().length);
       const first = focusable[0], last = focusable.at(-1);
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
     }
   });
-  const timer = setInterval(() => {
-    if (document.hidden || closed || openPanelElement) return;
-    const [name, message] = sampleComments[commentIndex++ % sampleComments.length];
-    addComment(name, message); $('room-join-name').textContent = ['Oliver', 'Emma', 'Kai'][commentIndex % 3];
-  }, 6500);
-  window.addEventListener('pagehide', () => { clearInterval(timer); clearTimeout(giftTimer); clearTimeout(toastTimer); });
-  return { showGift, get closed() { return closed; } };
+  let timer = null;
+  function startComments() {
+    if (timer !== null) return;
+    timer = setInterval(() => {
+      if (document.hidden || closed || openPanelElement) return;
+      const [name, message] = sampleComments[commentIndex++ % sampleComments.length];
+      addComment(name, message); $('room-join-name').textContent = ['Oliver', 'Emma', 'Kai'][commentIndex % 3];
+    }, 6500);
+  }
+  startComments();
+  window.addEventListener('pagehide', () => {
+    clearInterval(timer); timer = null; clearTimeout(giftTimer); clearTimeout(toastTimer);
+    $('gift-notice').hidden = $('room-toast').hidden = true;
+  });
+  window.addEventListener('pageshow', event => { if (event?.persisted) startComments(); });
+  return { showGift, closePanel, get closed() { return closed; } };
 }

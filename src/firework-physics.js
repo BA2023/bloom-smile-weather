@@ -46,6 +46,15 @@ export function solveLaunchToApex(height, horizontalDistance, gravity, drag = 2.
     vy: -gravity * Math.expm1(drag * duration) / drag };
 }
 
+// Keep the same drag/gravity trajectory while art-directing a short, responsive flight.
+export function solveTimedLaunch(height, horizontalDistance, duration = .38, drag = 2.6, wind = 0) {
+  if (![height, horizontalDistance, duration, drag, wind].every(Number.isFinite) || height <= 0 || duration <= 0 || drag < 0) throw new RangeError('Invalid timed launch');
+  const q = drag * duration;
+  const heightPerGravity = q < 1e-3 ? duration * duration * (.5 + q / 6 + q * q / 24 + q ** 3 / 120) : (Math.expm1(q) - q) / (drag * drag);
+  const gravity = height / heightPerGravity;
+  return { ...solveLaunchToApex(height, horizontalDistance, gravity, drag, wind), gravity };
+}
+
 // Uniform directions over a sphere, projected to x/y for the mobile main shell.
 export function sphereDirection(index, count, rotation = 0) {
   if (count <= 0 || index < 0 || index >= count) throw new RangeError('Invalid sphere sample');

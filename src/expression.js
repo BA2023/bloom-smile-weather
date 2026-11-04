@@ -15,21 +15,21 @@ export class ExpressionState {
     }
     const elapsed = this.lastTime === null ? 80 : clamp(now - this.lastTime, 0, 200);
     this.lastTime = now;
-    const alpha = 1 - Math.exp(-elapsed / 85);
+    const alpha = 1 - Math.exp(-elapsed / 45);
     this.smile += (clamp(signal.smile, 0, 1) - this.smile) * alpha;
     this.jaw += (clamp(signal.jaw, 0, 1) - this.jaw) * alpha;
     const smileEnter = .43 / this.sensitivity, smileExit = .30 / this.sensitivity;
     const laugh = this.smile >= .58 / this.sensitivity && this.jaw >= .20 / this.sensitivity;
     if (this.smile < .43 / this.sensitivity || this.jaw < .12 / this.sensitivity) {
       this.releaseSince ??= now;
-      if (now - this.releaseSince >= 300) this.armed = true;
+      if (now - this.releaseSince >= 180) this.armed = true;
     } else this.releaseSince = null;
     const next = laugh ? 'laugh' : this.smile > (this.label === 'smile' || this.label === 'laugh' ? smileExit : smileEnter) ? 'smile' : 'neutral';
     if (next !== this.candidate) { this.candidate = next; this.since = now; }
     let burst = false;
-    if (now - this.since >= (next === 'laugh' ? 230 : 140)) {
+    if (now - this.since >= (next === 'laugh' ? 90 : 70)) {
       this.label = next;
-      if (next === 'laugh' && this.armed && now - this.lastBurst >= 2100) {
+      if (next === 'laugh' && this.armed && now - this.lastBurst >= 900) {
         burst = true; this.lastBurst = now; this.armed = false;
       }
     }

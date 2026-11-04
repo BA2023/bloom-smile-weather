@@ -4,7 +4,7 @@ self.onmessage = async ({ data }) => {
   if (data.type === 'init') {
     try {
       const [{ FaceLandmarker, FilesetResolver }, shared] = await Promise.all([
-        import('../vendor/vision_bundle.mjs'), import('./tracking-shared.js')
+        import('../vendor/vision_bundle.mjs'), import('./tracking-shared.js?v=effect-modes-34')
       ]);
       extractSignal = shared.extractSignal;
       const vision = await FilesetResolver.forVisionTasks(new URL('../vendor/wasm', self.location.href).href);

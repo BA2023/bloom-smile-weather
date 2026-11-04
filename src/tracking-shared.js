@@ -3,6 +3,7 @@ export function extractSignal(result) {
   if (!landmarks || !result.faceBlendshapes?.[0]) return null;
   const values = Object.fromEntries(result.faceBlendshapes[0].categories.map(x => [x.categoryName, x.score]));
   return { smile: ((values.mouthSmileLeft || 0) + (values.mouthSmileRight || 0)) / 2,
+    cheek: ((values.cheekSquintLeft || 0) + (values.cheekSquintRight || 0)) / 2,
     jaw: values.jawOpen || 0, points: [10, 152, 234, 454].map(i => ({ x: landmarks[i].x, y: landmarks[i].y })) };
 }
 

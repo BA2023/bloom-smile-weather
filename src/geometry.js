@@ -48,3 +48,10 @@ export function collideEllipse(x0, y0, x1, y1, vx, vy, head, restitution = .62) 
     vy: dot < 0 ? vy - (1 + restitution) * dot * worldNy : vy,
     nx: worldNx, ny: worldNy };
 }
+// The GPT preview uses the same gentle idle path as the Gemini preview.
+export function previewHeadMotion(width, height, time, pointer = null, reduced = false) {
+  if (pointer) return { x: pointer.x * width, y: pointer.y * height, angle: pointer.angle || 0 };
+  return { x: width * .5 + (reduced ? 0 : Math.sin(time * 2.2) * 32),
+    y: height * .48 + (reduced ? 0 : Math.cos(time * 1.6) * 10),
+    angle: reduced ? 0 : Math.sin(time * 2.2) * .09 };
+}
