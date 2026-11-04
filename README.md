@@ -6,6 +6,15 @@
 - 运行代码基线：`interaction-audit-105`，部署提交 `8edea3616b30b7c9802b9cfcd005c7d17cc49de8`。
 - 最新验证：108 项自动化测试通过；完整范围见 [ACCEPTANCE.md](ACCEPTANCE.md)。
 
+## 界面预览
+
+<p>
+  <img src="docs/images/desktop.png" alt="电脑端直播间与设置面板" width="76%">
+  <img src="docs/images/mobile.png" alt="手机端互动设置面板" width="19.6%">
+</p>
+
+截图中的主播为虚构的 AI 分镜演示；开启镜头后可体验实时表情互动。
+
 ## 快速运行
 
 需要 Node.js 20+。构建与测试不需要额外 npm 依赖；首次 setup 从锁定地址下载模型、SDK 和 WASM，并校验 SHA-256。
