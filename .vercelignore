@@ -1,0 +1,9 @@
+dist
+node_modules
+qa
+.git
+.openai
+public/vendor/vision_bundle.mjs
+public/vendor/wasm
+public/vendor/gemini
+public/models

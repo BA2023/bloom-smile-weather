@@ -1,0 +1,31 @@
+{
+  "asset": "Fictional AI host storyboard demonstration",
+  "generationMode": "Built-in image generation (image_gen.imagegen); no external API key",
+  "generatedAt": "2026-10-31",
+  "prompt": "Use case: photorealistic-natural. Asset type: 3-frame storyboard source for an explicitly labeled fictional AI host demo in a mobile LIVE fireworks prototype. Generate a single landscape triptych, exactly three equal adjacent vertical panels, 1536x1024 overall, each panel 512x1024, no gutters or borders. Same fictional adult East Asian woman age 28, same dark shoulder-length hair, simple charcoal crew-neck top, no jewelry, no branding. Identical locked camera, framing, head position and lighting in all three panels. Panels will be cropped into frames and crossfaded, so face, shoulders and background must align precisely. Left: relaxed neutral expression, closed mouth. Middle: warm natural smile, closed or slightly parted lips. Right: joyful natural open-mouth laugh, eyes softly smiling. Face center at 50% horizontal and 44% vertical within each panel; entire hair/head approximately y=27% to 60%, shoulders from y=65% downward. Generous dark empty space above head and around sides for fireworks; lower 20% dim uncluttered for LIVE comments. Background identical very dark softly lit home recording studio with no readable objects, neutral blue-gray; soft warm key light, subtle cool rim. Natural skin texture, believable restrained portrait photography, no beauty-filter plastic skin. No text, no UI, no icons, no logos, no fireworks. This person must be fictional, not recognizable as a public figure.",
+  "sourceStoryboard": "output/imagegen/bloom-host-storyboard.png",
+  "composition": {
+    "method": "Three 512x910 portrait crops from a 1536x1024 triptych, resized to 360x640 and crossfaded; fourth segment repeats neutral. Not a natural live-action recording.",
+    "durationSeconds": 10,
+    "codec": "H.264 / yuv420p / faststart",
+    "audio": false,
+    "fadeSeconds": 0.4,
+    "fadeOffsetsSeconds": [
+      2,
+      5,
+      8.1
+    ],
+    "scriptedEffects": "smile rain at 2.4–5.4s; laughter rain and three fireworks at 5.4–8.1s. This media is not passed through the face tracker.",
+    "files": [
+      "public/media/host-demo.mp4",
+      "public/media/host-poster.jpg"
+    ]
+  },
+  "disclosure": "Fictional adult AI host; visible AI demonstration badge and scripted-playback note. AI is off by default and starts only via its dedicated button, stopping the real camera. Page entry requests the local camera, always subject to browser permission; turning AI off returns to the camera.",
+  "referenceUI": "TikTok official Holiday Checklist, page 25: https://ads.tiktok.com/business/library/TikTok_Shop_Holiday_Checklist.pdf. Reference imagery is not bundled or reused.",
+  "sha256": {
+    "output/imagegen/bloom-host-storyboard.png": "db77d1266de7768a846ac551b80a891d634b022a7bf32eff02256358554467c4",
+    "bloom-vercel/public/media/host-demo.mp4": "3777571fe57cd2cfeb623c7a79a4d6352ccb16666df92da9b6eb798a3022d04c",
+    "bloom-vercel/public/media/host-poster.jpg": "742c24619ce6131fe6bcd43deaca2dd6bbed79e925c08a8b6f777ea57d9c4686"
+  }
+}

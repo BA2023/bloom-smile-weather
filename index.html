@@ -2,12 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#11120f">
+  <script>if (!location.hash && 'scrollRestoration' in history) history.scrollRestoration = 'manual';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#080b10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BLOOM">
   <meta name="description" content="微笑落下流光细雨，大笑绽放漫天星焰。BLOOM，一个让笑意有回响的实时 AR 实验。">
   <title>BLOOM — 笑意有回响</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=physics-9">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css?v=mobile-height-102">
 </head>
 <body>
   <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
@@ -15,55 +21,82 @@
     <symbol id="i-gift" viewBox="0 0 24 24"><path d="M3 10h18v4H3zM5 14v7h14v-7M12 10v11M12 10H8a3 3 0 1 1 3-3l1 3Zm0 0h4a3 3 0 1 0-3-3l-1 3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
     <symbol id="i-share" viewBox="0 0 24 24"><path d="m13 3 8 7-8 7v-4c-5 0-8 2-10 7 0-8 3-12 10-12V3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></symbol>
+    <symbol id="i-tune" viewBox="0 0 24 24"><path d="M4 7h6m4 0h6M4 17h10m4 0h2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="m4 4 17 8-17 8 3-8-3-8Zm3 8h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
     <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 7h12v11H3zM15 10l6-3v11l-6-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
     <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v7a5 5 0 0 1-10 0V3Zm0 2H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 3v5m-4 1h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-sparkle" viewBox="0 0 64 64"><path d="m32 3 5 21 17-14-12 18 19 4-20 5 14 17-18-12-5 19-5-20-17 14 12-18L3 32l20-5L9 10l18 12 5-19Z" fill="currentColor"/><path d="m32 16 2 12 12 4-12 3-2 13-3-13-13-3 13-4 3-12Z" fill="#fff8dc"/></symbol>
     <symbol id="i-drop" viewBox="0 0 64 64"><path d="M32 3S10 29 10 42a22 22 0 0 0 44 0C54 29 32 3 32 3Z" fill="currentColor"/><path d="M20 42c0 8 4 12 11 13" fill="none" stroke="#e8ffff" stroke-width="4" stroke-linecap="round"/></symbol>
+    <symbol id="i-guide-rain" viewBox="0 0 24 24"><path d="m7 4-3 7m9-6-5 12m12-5-4 9M17 3l-2 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-guide-calm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 12h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-guide-bloom" viewBox="0 0 24 24"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M5.6 5.6l2.8 2.8m7.2 7.2 2.8 2.8M5.6 18.4l2.8-2.8m7.2-7.2 2.8-2.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-guide-bounce" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="5" ry="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 7v5m0 0 3-3m-3 3 3 3m15-8v5m0 0-3-3m3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 5h4m-3 13.5h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M15 5V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 8 2-2a4 4 0 0 1 6 6l-2 2m-2 2-2 2a4 4 0 0 1-6-6l2-2m1 5 6-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 6 9 6-9 6V6Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs></svg>
 
+  <div class="studio-ambient" aria-hidden="true"></div>
   <header class="site-header">
     <a class="wordmark" href="./" aria-label="BLOOM 首页"><span class="brand-flower" aria-hidden="true">✳</span>bloom<span class="brand-period">.</span></a>
-    <span class="header-tag">A LITTLE JOY. A LITTLE MAGIC.</span>
-    <span class="privacy-note"><span class="privacy-dot"></span>镜头留在此刻，也留在本机</span>
-    <a class="mobile-open-link" href="#mobile-access">手机打开 <span aria-hidden="true">↗</span></a>
+    <button class="language-switch" id="language-toggle" type="button" aria-label="Switch to English" data-language="zh"><span lang="zh">中</span><span aria-hidden="true"> / </span><span lang="en">EN</span></button>
   </header>
 
   <main class="experience">
     <section class="intro" aria-labelledby="page-title">
-      <div class="edition"><span class="edition-line"></span>LIVE INTERACTION — 001</div>
-      <h1 id="page-title">让笑意，<br>有<span class="title-emphasis">回响。</span></h1>
-      <p class="english-title">Let it bloom.</p>
-      <p class="intro-copy">一个微笑，落下一场光的细雨。<br>放声大笑，让星焰为你绽放。</p>
+      <h1 id="page-title">让笑意，<br> 有<span class="title-emphasis">回响。</span></h1>
+      <p class="intro-copy">微笑唤来细雨，大笑点亮烟花。</p>
 
-      <div class="interaction-guide" aria-label="互动方式">
-        <div class="guide-row"><span class="guide-icon rain-icon" aria-hidden="true">╲</span><div><span class="guide-label">微笑</span><span class="guide-description">流光细雨，随笑意渐浓</span></div></div>
-        <div class="guide-row"><span class="guide-icon" aria-hidden="true">✷</span><div><span class="guide-label">大笑</span><span class="guide-description">层层星焰，为此刻绽放</span></div></div>
-        <div class="guide-row"><span class="guide-icon orbit-icon" aria-hidden="true">◌</span><div><span class="guide-label">轻轻晃动头部</span><span class="guide-description">让星光碰撞，再轻盈弹开</span></div></div>
+      <div class="interaction-guide" id="interaction-guide" aria-labelledby="interaction-title">
+        <h2 id="interaction-title" class="interaction-title">互动体验</h2>
+        <div class="interaction-session" id="interaction-session"><div class="room-mode" data-room-ui hidden><div class="mode-badge" id="mode-badge"><span class="mode-dot"></span><span id="mode-label">特效预演</span></div><span id="room-effect-status" class="room-effect-status" data-state="idle">等待绽放</span></div>
+        <div class="session-source-actions"><div class="stage-controls" data-room-ui><div class="camera-actions"><button id="stop-camera" class="text-button" type="button" hidden>关闭镜头</button><button id="start-camera" class="primary-button" type="button"><svg aria-hidden="true"><use href="#i-camera"/></svg>开启镜头</button></div></div><div class="session-ai-row"><button id="demo-scene-toggle" class="demo-scene-toggle" type="button" aria-pressed="false">开启AI主播</button><button id="demo-scene-play" class="demo-scene-play" type="button" hidden>重播</button></div></div>
+        <p id="demo-scene-note" class="demo-scene-note" hidden>AI 分镜 · 效果按脚本演示</p></div>
+        <button class="guide-row guide-preview" type="button" title="点按播放一次，再次点按重播" data-preview="preview-neutral" aria-label="预演平静状态" aria-pressed="false"><span class="guide-icon" aria-hidden="true"><svg><use href="#i-guide-calm"/></svg></span><span class="guide-text"><span class="guide-label">平静</span><span class="guide-description">预演3秒平静</span></span><span class="guide-play" aria-hidden="true"><svg><use href="#i-play"/></svg><span class="guide-playing"><i></i><i></i><i></i></span></span></button>
+        <button class="guide-row guide-preview" type="button" title="点按播放一次，再次点按重播" data-preview="preview-rain" aria-label="预演流光细雨" aria-pressed="false"><span class="guide-icon" aria-hidden="true"><svg><use href="#i-guide-rain"/></svg></span><span class="guide-text"><span class="guide-label">微笑</span><span class="guide-description">预演4秒细雨</span></span><span class="guide-play" aria-hidden="true"><svg><use href="#i-play"/></svg><span class="guide-playing"><i></i><i></i><i></i></span></span></button>
+        <button class="guide-row guide-preview" type="button" title="点按播放一次，再次点按重播" data-preview="preview-burst" aria-label="预演流光烟花"><span class="guide-icon" aria-hidden="true"><svg><use href="#i-guide-bloom"/></svg></span><span class="guide-text"><span class="guide-label">大笑</span><span class="guide-description">预演一轮烟花</span></span><span class="guide-play" aria-hidden="true"><svg><use href="#i-play"/></svg><span class="guide-playing"><i></i><i></i><i></i></span></span></button>
       </div>
 
+      <div class="intro-controls">
+
+
+      <section class="settings" aria-labelledby="experience-settings-title">
+        <div class="settings-heading"><h2 id="experience-settings-title">体验设置</h2></div>
+        <div class="effect-style-control"><span id="effect-style-label">特效风格</span><div class="effect-style-options" role="group" aria-labelledby="effect-style-label"><button id="effect-bloom" class="effect-style-option" type="button" data-effect-style="bloom" aria-pressed="true" title="GPT 原版特效">GPT</button><button id="effect-gemini" class="effect-style-option" type="button" data-effect-style="gemini" aria-pressed="false" title="Gemini 雨与烟花">Gemini</button></div></div>
       <fieldset class="palette-field">
-        <legend>为这一刻，选一种光<span>01 — 03</span></legend>
+        <legend>特效配色</legend>
         <div class="palette-options">
+          <button id="palette-auto" class="palette-option" data-palette="auto" type="button" aria-pressed="false" aria-label="原版随机配色" hidden><span class="palette-swatch swatch-auto"></span>随机</button>
           <button class="palette-option selected" data-palette="gold" type="button" aria-pressed="true"><span class="palette-swatch swatch-gold"></span>鎏金</button>
           <button class="palette-option" data-palette="rose" type="button" aria-pressed="false"><span class="palette-swatch swatch-rose"></span>绯樱</button>
           <button class="palette-option" data-palette="aurora" type="button" aria-pressed="false"><span class="palette-swatch swatch-aurora"></span>极光</button>
         </div>
       </fieldset>
-
-      <details class="settings">
-        <summary>体验设置<span aria-hidden="true">＋</span></summary>
-        <label class="range-label" for="sensitivity">表情灵敏度 <output id="sensitivity-value">标准</output></label>
-        <input id="sensitivity" type="range" min="0.75" max="1.25" value="1" step="0.05">
-        <label class="check-label"><input id="debug-toggle" type="checkbox">显示识别与碰撞信息</label>
-        <label class="check-label"><input id="motion-toggle" type="checkbox">轻量动效</label>
-      </details>
-      <div class="intro-footnote">NO FILTER FOR JOY.<span>JUST YOU.</span></div>
+        <div id="sensitivity-control" class="sensitivity-control"><label class="range-label" for="sensitivity">灵敏度 <output id="sensitivity-value">标准</output></label><input id="sensitivity" type="range" min="0.75" max="1.25" value="1" step="0.05"></div>
+        <div class="settings-options"><label class="check-label"><span>头部光环</span><input id="head-halo" type="checkbox" role="switch" checked></label><div class="motion-setting" id="motion-setting"><div class="motion-label"><label for="motion-toggle">简化特效</label><button id="motion-help-button" class="setting-help-button" type="button" aria-label="了解简化特效" aria-controls="motion-help" aria-expanded="false" aria-describedby="motion-help"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 4.5v.5"/></svg></button></div><input id="motion-toggle" type="checkbox" role="switch" aria-describedby="motion-help"></div></div>
+      </section>
+      </div>
+      <section id="mobile-access" class="mobile-access" aria-labelledby="mobile-access-title">
+        <div class="mobile-access-heading">
+        <div class="mobile-access-icon" aria-hidden="true"><svg><use href="#i-phone"/></svg></div>
+        <h2 id="mobile-access-title">手机体验</h2>
+        </div>
+        <p>扫码后允许镜头，继续体验。</p>
+        <div class="mobile-qr-plate"><img src="./mobile-qr.svg" width="180" height="180" alt="扫描二维码，在手机上打开 BLOOM 直播间"></div>
+        <label class="sr-only" for="mobile-url">手机访问链接</label>
+        <div class="mobile-link-field"><svg aria-hidden="true"><use href="#i-link"/></svg><input id="mobile-url" readonly value="https://bloom-smile-weather.vercel.app/"></div>
+        <button id="copy-mobile-link" type="button"><span id="copy-mobile-label">复制手机链接</span><svg aria-hidden="true"><use href="#i-copy"/></svg></button>
+        <span id="mobile-copy-status" class="mobile-copy-status" role="status"></span>
+      </section>
     </section>
 
-    <section class="stage-wrapper" aria-label="AR 互动舞台">
+    <section class="stage-wrapper" id="stage-wrapper" aria-label="AR 互动舞台">
       <div class="stage-shell">
       <div class="stage" id="stage">
+        <video id="demo-host" muted loop playsinline preload="metadata" poster="./media/host-poster.jpg" aria-label="虚构主播的AI分镜场景演示，效果由脚本驱动"><source src="./media/host-demo.mp4" type="video/mp4"></video>
         <video id="camera" autoplay muted playsinline aria-hidden="true" aria-label="本机摄像头实时画面"></video>
         <div class="stage-vignette"></div>
         <canvas id="effects" aria-label="细雨与烟花粒子动画">需要支持 Canvas 的浏览器。</canvas>
@@ -73,40 +106,50 @@
           <div class="host-profile"><div class="host-avatar" aria-hidden="true">b<span>✳</span></div><div class="host-info"><strong>Bloom Studio</strong><span id="room-like-count">12.8K 点赞</span></div><button id="room-follow" class="follow-button" type="button" aria-pressed="false">关注</button></div>
           <div class="room-audience"><div class="viewer-avatars" aria-hidden="true"><i>M</i><i>L</i></div><span class="viewer-count" aria-label="模拟观看人数1286人">1.2K</span><button id="room-exit" class="room-icon exit-button" type="button" aria-label="离开模拟直播间"><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
         </div>
-        <div class="live-summary" data-room-ui><span class="room-ranking"><svg aria-hidden="true"><use href="#i-trophy"/></svg>人气榜 · 08 <span>›</span></span><span class="live-indicator"><b>LIVE</b>模拟直播间</span></div>
-        <div class="room-mode" data-room-ui><div class="mode-badge" id="mode-badge"><span class="mode-dot"></span><span id="mode-label">特效预演</span></div></div>
-        <div class="stage-controls" data-room-ui><div class="camera-actions"><button id="stop-camera" class="text-button" type="button" hidden>关闭镜头</button><button id="start-camera" class="primary-button" type="button"><svg aria-hidden="true"><use href="#i-camera"/></svg>开启镜头</button></div></div>
+        <div class="live-summary" data-room-ui><span class="room-ranking"><svg aria-hidden="true"><use href="#i-trophy"/></svg>人气榜 · 08 <span>›</span></span><div class="live-summary-actions"><span class="live-indicator"><b>LIVE</b>模拟直播间</span><button class="language-switch room-language" id="language-toggle-mobile" type="button" aria-label="Switch to English" data-language="zh"><span lang="zh">中</span><span aria-hidden="true"> / </span><span lang="en">EN</span></button></div></div>
+        <div id="live-state-capsule" class="live-state-capsule" role="status" aria-live="polite" aria-atomic="true" aria-label="当前表情与特效状态" data-room-ui data-source="preview" data-expression="neutral"><span class="capsule-dot" aria-hidden="true"></span><span id="capsule-source" class="capsule-source">预演</span><span class="capsule-divider" aria-hidden="true"></span><span id="capsule-expression">平静</span><span id="capsule-effect" class="capsule-effect">等待微笑</span></div>
         <div class="status-banner" id="status-banner" role="status" aria-live="polite" hidden></div>
-        <div class="debug-panel" id="debug-panel" hidden><div><span>RENDER</span><output id="fps">—</output></div><div><span>PARTICLES</span><output id="particle-count">0</output></div><div><span>COLLISIONS</span><output id="collision-count">0</output></div><div><span>INFERENCE</span><output id="inference-time">—</output></div><div><span>TRACKER</span><output id="tracker-mode">—</output></div><div><span>SMILE / JAW</span><output id="expression-values">—</output></div></div>
         <div class="live-chat-area" data-room-ui>
-          <div class="gift-notice" id="gift-notice" hidden><div class="gift-sender-avatar" aria-hidden="true">M</div><div><strong id="gift-sender">Mia</strong><span id="gift-message">送出流光烟花</span></div><span class="gift-notice-art" id="gift-notice-art" aria-hidden="true">✷</span><b>×1</b></div>
+          <div class="gift-notice" id="gift-notice" hidden><div class="gift-sender-avatar" aria-hidden="true">M</div><div><strong id="gift-sender">Mia</strong><span id="gift-message">送出流光烟花</span></div><span class="gift-notice-art" id="gift-notice-art" aria-hidden="true">✷</span><b id="gift-combo">×1</b><button id="gift-repeat" class="gift-repeat" type="button" hidden aria-label="再送一次流光烟花">连送</button></div>
           <div id="room-comments" class="room-comments" role="log" aria-label="模拟直播评论" aria-live="polite" aria-relevant="additions"><p><span class="comment-badge">11</span><strong>Mia</strong><span>这场烟花也太好看了 ✨</span></p><p><span class="comment-badge blue">7</span><strong>Noah</strong><span>微笑真的会下雨吗</span></p><p><span class="comment-badge violet">9</span><strong>Luna</strong><span>试试极光那款！</span></p></div>
           <div class="room-join"><span id="room-join-name">Oliver</span> 加入了直播间</div>
-          <div class="expression-state" id="expression-state"><span class="expression-symbol" id="expression-symbol" aria-hidden="true">✧</span><div><span id="expression-name">让笑意点亮这一场</span><span id="expression-detail">点礼物预演，或开启镜头微笑</span></div></div>
+          <div class="expression-state" id="expression-state" hidden><span class="expression-symbol" id="expression-symbol" aria-hidden="true">✧</span><div><span id="expression-name">让笑意点亮这一场</span><span id="expression-detail">点礼物预演，或开启镜头微笑</span></div></div>
         </div>
         <div class="room-reactions" data-room-ui><div id="floating-hearts" class="floating-hearts" aria-hidden="true"></div><button id="room-like" class="room-like-button" type="button" aria-label="为模拟直播点赞"><svg aria-hidden="true"><use href="#i-heart"/></svg></button><span id="room-like-short">12.8K</span></div>
         <div class="room-toolbar" data-room-ui><form id="room-comment-form" class="room-comment-form"><label class="sr-only" for="room-comment-input">添加模拟评论</label><input id="room-comment-input" type="text" placeholder="说点什么…" maxlength="90" autocomplete="off"><button class="comment-send" type="submit" aria-label="发送模拟评论"><svg aria-hidden="true"><use href="#i-send"/></svg></button></form><button id="room-share" class="room-icon" type="button" aria-label="分享演示链接"><svg aria-hidden="true"><use href="#i-share"/></svg></button><button id="gift-trigger" class="room-icon room-gift-button" type="button" aria-label="打开礼物面板" aria-haspopup="dialog" aria-expanded="false"><svg aria-hidden="true"><use href="#i-gift"/></svg></button></div>
+        <button id="room-settings-trigger" class="room-icon room-settings-button" type="button" aria-label="打开互动面板" aria-haspopup="dialog" aria-expanded="false" data-room-ui><svg aria-hidden="true"><use href="#i-tune"/></svg><span>面板</span></button>
         <div class="room-toast" id="room-toast" role="status" hidden></div>
+        <div id="room-settings-panel" class="room-modal" hidden data-room-ui><div class="room-modal-backdrop" data-close-panel="room-settings-panel"></div><section class="gift-sheet room-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="room-settings-title"><div class="sheet-handle"></div><header class="sheet-heading"><h2 id="room-settings-title">互动面板</h2><button class="room-icon" type="button" data-close-panel="room-settings-panel" aria-label="关闭互动面板"><svg aria-hidden="true"><use href="#i-close"/></svg></button></header><div id="room-settings-content" class="room-settings-content"></div><div class="room-display-options"><button id="room-fullscreen" class="copy-room-link" type="button" hidden>全屏观看</button><p id="room-display-hint" class="room-display-hint">想隐藏浏览器工具栏，可将 BLOOM 添加到主屏幕，再从主屏幕打开。</p></div><p class="room-settings-privacy">模拟直播间 · 无需充值<br>开启镜头后，画面仅在本机处理，不上传。</p></section></div>
         <div id="gift-panel" class="room-modal" hidden data-room-ui><div class="room-modal-backdrop" data-close-panel="gift-panel"></div><section class="gift-sheet" role="dialog" aria-modal="true" aria-labelledby="gift-panel-title"><div class="sheet-handle"></div><header class="sheet-heading"><h2 id="gift-panel-title">送一份心意</h2><button class="room-icon" type="button" data-close-panel="gift-panel" aria-label="关闭礼物面板"><svg aria-hidden="true"><use href="#i-close"/></svg></button></header><p class="gift-sheet-copy">让这一刻，有一点不一样。</p><div id="preview-actions" class="preview-actions gift-grid"><button id="preview-rain" class="gift-card" type="button" aria-pressed="false" data-gift="rain"><span class="gift-art rain-gift"><svg aria-hidden="true"><use href="#i-drop"/></svg><i>✧</i></span><strong>流光细雨</strong><small>一场温柔的光</small></button><button id="preview-burst" class="gift-card" type="button" data-gift="fireworks"><span class="gift-art firework-gift"><svg aria-hidden="true"><use href="#i-sparkle"/></svg><i>✧</i></span><strong>流光烟花</strong><small>为你绽放</small></button><button id="gift-heart" class="gift-card" type="button" data-gift="heart"><span class="gift-art heart-gift"><svg aria-hidden="true"><use href="#i-heart"/></svg><i>✦</i></span><strong>心动</strong><small>把喜欢点亮</small></button></div><p class="gift-sheet-note">演示礼物 · 无需充值</p></section></div>
         <div id="share-panel" class="room-modal" hidden data-room-ui><div class="room-modal-backdrop" data-close-panel="share-panel"></div><section class="gift-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-panel-title"><div class="sheet-handle"></div><header class="sheet-heading"><h2 id="share-panel-title">分享这一场</h2><button class="room-icon" type="button" data-close-panel="share-panel" aria-label="关闭分享面板"><svg aria-hidden="true"><use href="#i-close"/></svg></button></header><p class="gift-sheet-copy">把一点快乐，传给想见的人。</p><input id="share-url" aria-label="演示链接" readonly><button id="copy-room-link" class="copy-room-link" type="button">复制演示链接</button></section></div>
         <div id="room-ended" class="room-ended" hidden data-room-ui><div class="ended-avatar">✳</div><h2>期待下一次相遇</h2><p>模拟直播间预览已结束</p><button id="room-reenter" type="button">重新进入</button></div>
       </div>
       </div>
-      <p class="camera-disclosure" id="camera-disclosure">模拟直播间 · 互动仅在本机<span>开启镜头后体验表情特效，画面不上传</span></p>
+      <p class="camera-disclosure" id="camera-disclosure" hidden>模拟直播间 · 互动仅在本机<span>开启镜头后体验表情特效，画面不上传</span></p>
     </section>
-    <aside id="mobile-access" class="mobile-access" aria-labelledby="mobile-access-title">
-      <span class="mobile-access-eyebrow">TAKE A LITTLE JOY WITH YOU</span>
-      <h2 id="mobile-access-title">手机上，也能绽放。</h2>
-      <p>扫一扫，在手机浏览器里继续体验。</p>
-      <div class="mobile-qr-plate"><img src="./mobile-qr.svg" width="180" height="180" alt="扫描二维码，在手机上打开 BLOOM 直播间"></div>
-      <label class="sr-only" for="mobile-url">手机访问链接</label>
-      <input id="mobile-url" readonly value="https://bloom-smile-weather.freesnipe20.chatgpt.site/">
-      <button id="copy-mobile-link" type="button">复制手机链接 <span aria-hidden="true">↗</span></button>
-      <span id="mobile-copy-status" class="mobile-copy-status" role="status">点击开启镜头后，允许摄像头即可互动。</span>
+    <aside class="companion-panel" id="companion-panel" aria-label="实时概览">
+      <section class="realtime-card" id="realtime-status-card" aria-labelledby="realtime-status-title">
+        <div class="realtime-heading"><h2 id="realtime-status-title">实时状态</h2><span id="signal-source" class="signal-source">无识别信号</span></div>
+        <div class="signal-states" aria-label="表情状态"><span id="signal-neutral">平静等待</span><span id="signal-rain">微笑下雨</span><span id="signal-fireworks">大笑烟花</span></div>
+      </section>
+      <section id="expression-card" class="signal-section expression-card" aria-labelledby="expression-card-title">
+        <div class="telemetry-section-heading"><h2 id="expression-card-title">表情识别</h2></div>
+        <div class="signal-meter"><div class="signal-label"><span>嘴角上扬程度</span><output id="signal-smile">—</output></div><div class="signal-track" role="meter" aria-label="嘴角上扬程度" aria-valuemin="0" aria-valuemax="1" id="signal-smile-meter"><i id="signal-smile-fill"></i><span class="gate-marker" id="gate-smile" title="微笑下雨的触发位置" style="left:43%"><b>0.43</b></span><span class="gate-marker gate-laugh" id="gate-laugh" title="大笑烟花的微笑触发位置" style="left:58%"><b>0.58</b></span></div></div>
+        <div class="signal-meter"><div class="signal-label"><span>张嘴幅度</span><output id="signal-jaw">—</output></div><div class="signal-track jaw-track" role="meter" aria-label="张嘴幅度" aria-valuemin="0" aria-valuemax="1" id="signal-jaw-meter"><i id="signal-jaw-fill"></i><span class="gate-marker" id="gate-jaw" title="大笑烟花的张嘴触发位置" style="left:20%"><b>0.20</b></span></div></div>
+        <p class="signal-gate-note">刻度标出触发位置，识别结果会平稳切换</p>
+      </section>
+    <section id="studio-monitor" class="studio-monitor" aria-labelledby="studio-monitor-title">
+      <div class="studio-monitor-heading"><h2 id="studio-monitor-title">运行表现</h2><span class="studio-source" id="studio-source" hidden>特效预演</span></div>
+      <div class="studio-effect" hidden><span class="studio-effect-dot" aria-hidden="true"></span><span id="studio-effect">等待绽放</span></div>
+      <div class="studio-metrics"><div><span class="studio-metric-label">画面流畅度</span><div class="studio-metric-value"><output id="studio-fps">—</output><span>FPS</span></div></div><div><span class="studio-metric-label">每秒识别次数</span><div class="studio-metric-value"><output id="studio-inference-hz">—</output><span>次/秒</span></div></div><div><span class="studio-metric-label" title="主线程识别调用与动画处理，不含Worker推理和浏览器合成">每帧计算用时</span><div class="studio-metric-value"><output id="studio-frame-cost">—</output><span>ms</span></div></div><div><span class="studio-metric-label">头部碰撞次数</span><div class="studio-metric-value"><output id="studio-collisions">0</output></div></div></div>
+      <div class="pool-section"><div class="signal-label"><span>特效粒子数量</span><output id="studio-pool">0 / 1350</output></div><div class="pool-track" role="meter" aria-label="当前特效粒子数量与上限" aria-valuemin="0" aria-valuemax="1350" id="studio-pool-meter"><i id="studio-pool-fill"></i></div></div>
+      <div class="frame-chart"><div class="signal-label"><span>每帧耗时变化</span><span class="frame-chart-unit">16.7ms 参考线<span class="chart-dash"> ┄</span></span></div><svg viewBox="0 0 240 40" role="img" aria-label="最近约12秒的帧处理耗时趋势"><line id="frame-guide" x1="0" x2="240" y1="4" y2="4"/><polyline id="frame-history" points=""/></svg></div>
+      <dl class="telemetry-details"><div><dt>头部移动速度</dt><dd><output id="studio-head-speed">—</output><span>px/s</span></dd></div><div><dt>单次识别用时</dt><dd><output id="studio-inference-ms">—</output><span>ms</span></dd></div><div><dt>识别运行方式</dt><dd id="studio-tracker">未运行</dd></div></dl>
+    </section>
     </aside>
   </main>
 
-  <footer class="site-footer"><span>BUILT FOR THE MOMENTS THAT MAKE YOU SMILE.</span><span>光有形状，快乐也是。<span class="footer-star" aria-hidden="true">✳</span></span></footer>
-  <script type="module" src="./src/main.js?v=physics-9"></script>
+  <div id="motion-help" class="setting-tooltip" role="tooltip" hidden><p>减少粒子，降低负担。AI 分镜暂停，仍可手动预演。</p></div>
+  <script type="module" src="./src/main.js?v=interaction-audit-105"></script>
 </body>
 </html>
