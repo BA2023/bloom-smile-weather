@@ -3,6 +3,7 @@
 表情驱动的直播间 AR 原型：微笑下雨，大笑绽放烟花，移动头部与粒子碰撞互动。
 
 - [在线 Demo](https://bloom-smile-weather.vercel.app/)
+- [笔试答卷：字节跳动 - AI产品设计师 - TikTok设计 笔试（飞书文档）](https://my.feishu.cn/docx/MG3YdJSCSoYizMxLRgicQn0On1f)
 - 运行代码基线：`interaction-audit-105`，部署提交 `8edea3616b30b7c9802b9cfcd005c7d17cc49de8`。
 - 最新验证：108 项自动化测试通过；完整范围见 [ACCEPTANCE.md](ACCEPTANCE.md)。
 
